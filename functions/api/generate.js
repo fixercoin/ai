@@ -1,14 +1,15 @@
 // functions/api/generate.js
-// Complete Pages Function with proper error handling
+// Complete Pages Function with ALL endpoints and better error handling
 
 export async function onRequest(context) {
-    const { request, env } = context;
+    const { request, env, next } = context;
     const url = new URL(request.url);
     const path = url.pathname;
 
-    // Log environment for debugging
-    console.log('AI Binding exists:', !!env.AI);
-    console.log('KV Binding exists:', !!env.GENERATIONS);
+    console.log('Request path:', path);
+    console.log('Method:', request.method);
+    console.log('AI binding exists:', !!env.AI);
+    console.log('KV binding exists:', !!env.GENERATIONS);
 
     // ============================================================
     // ENDPOINT 1: GET /api/history - Fetch all history
@@ -18,9 +19,11 @@ export async function onRequest(context) {
             // Check if KV exists
             if (!env.GENERATIONS) {
                 return new Response(JSON.stringify({ 
-                    error: 'KV binding not found. Please add GENERATIONS binding in Cloudflare Dashboard.' 
+                    items: [],
+                    error: 'KV binding not found',
+                    message: 'History storage is not available, but generation still works!'
                 }), {
-                    status: 500,
+                    status: 200, // Return 200 with empty items instead of 500
                     headers: { 'Content-Type': 'application/json' }
                 });
             }
@@ -39,10 +42,10 @@ export async function onRequest(context) {
                         const item = JSON.parse(itemData);
                         items.push({
                             id: item.id,
-                            prompt: item.prompt,
-                            url: item.url,
-                            type: item.type,
-                            created: item.created
+                            prompt: item.prompt || 'No prompt',
+                            url: item.url || '',
+                            type: item.type || 'image',
+                            created: item.created || Date.now()
                         });
                     }
                 } catch (e) {
@@ -57,8 +60,12 @@ export async function onRequest(context) {
                 }
             });
         } catch (error) {
-            return new Response(JSON.stringify({ error: error.message }), {
-                status: 500,
+            console.error('History error:', error);
+            return new Response(JSON.stringify({ 
+                items: [],
+                error: error.message 
+            }), {
+                status: 200, // Return 200 with empty items
                 headers: { 'Content-Type': 'application/json' }
             });
         }
@@ -75,7 +82,7 @@ export async function onRequest(context) {
                 return new Response(JSON.stringify({ 
                     error: 'KV binding not found' 
                 }), {
-                    status: 500,
+                    status: 404,
                     headers: { 'Content-Type': 'application/json' }
                 });
             }
@@ -107,9 +114,7 @@ export async function onRequest(context) {
     // ============================================================
     if (request.method === 'POST' && path === '/api/generate') {
         try {
-            // ============================================================
-            // CRITICAL: Check if AI binding exists
-            // ============================================================
+            // Check if AI binding exists
             if (!env.AI) {
                 return new Response(JSON.stringify({ 
                     error: 'AI binding not found. Please add AI binding in Cloudflare Dashboard.\n\nInstructions:\n1. Go to your Pages project\n2. Settings → Functions\n3. Add binding → Workers AI\n4. Variable name: AI\n5. Click Save' 
@@ -128,11 +133,9 @@ export async function onRequest(context) {
                 });
             }
 
-            // ============================================================
-            // STEP 1: Generate Image using Cloudflare Workers AI
-            // ============================================================
             console.log('Generating image with prompt:', prompt);
             
+            // Generate image using Cloudflare Workers AI
             const model = '@cf/black-forest-labs/flux-1-schnell';
             const aiResponse = await env.AI.run(model, {
                 prompt: prompt,
@@ -162,9 +165,7 @@ export async function onRequest(context) {
             // Generate unique ID
             const id = `gen_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
 
-            // ============================================================
-            // STEP 2: Store in KV (if available)
-            // ============================================================
+            // Store in KV if available
             const generationData = {
                 id: id,
                 prompt: prompt,
@@ -175,10 +176,8 @@ export async function onRequest(context) {
 
             try {
                 if (env.GENERATIONS) {
-                    // Store individual item
                     await env.GENERATIONS.put(id, JSON.stringify(generationData));
 
-                    // Update history list
                     let historyList = [];
                     try {
                         const historyData = await env.GENERATIONS.get('history_list');
@@ -195,17 +194,13 @@ export async function onRequest(context) {
                     }
                     await env.GENERATIONS.put('history_list', JSON.stringify(historyList));
                     console.log('Stored in KV with ID:', id);
-                } else {
-                    console.log('KV not available, skipping storage');
                 }
             } catch (kvError) {
                 console.error('KV storage error:', kvError);
                 // Continue even if KV fails
             }
 
-            // ============================================================
-            // STEP 3: Return response
-            // ============================================================
+            // Return response
             return new Response(JSON.stringify({
                 type: mode === 'video' ? 'video' : 'image',
                 url: imageUrl,
@@ -230,9 +225,13 @@ export async function onRequest(context) {
     }
 
     // ============================================================
-    // 404 - Not found
+    // 404 - Not found - Return JSON instead of HTML
     // ============================================================
-    return new Response(JSON.stringify({ error: 'Not found' }), {
+    return new Response(JSON.stringify({ 
+        error: 'Not found',
+        path: path,
+        method: request.method
+    }), {
         status: 404,
         headers: { 'Content-Type': 'application/json' }
     });
