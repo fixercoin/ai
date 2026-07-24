@@ -106,14 +106,14 @@
 
         .input-top .text-field {
             width: 100%;
-            padding: 1.5rem 3.5rem 1.5rem 1rem;
+            padding: 2rem 3.5rem 2rem 1rem;
             font-size: 1rem;
             font-family: inherit;
-            min-height: 160px;
-            max-height: 400px;
+            min-height: 220px;
+            max-height: 500px;
             background: transparent;
             color: #1f2937;
-            line-height: 1.8;
+            line-height: 2;
             text-transform: uppercase;
             overflow-y: auto;
             border: 2px dashed #d1d5db;
@@ -291,17 +291,46 @@
             height: 56px;
             align-self: center;
             min-width: 120px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .input-top .generate-btn:hover:not(:disabled) {
+        .input-top .generate-btn .btn-text {
+            transition: opacity 0.3s;
+        }
+
+        .input-top .generate-btn .btn-loader {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid #ffffff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .input-top .generate-btn.loading .btn-text {
+            display: none;
+        }
+
+        .input-top .generate-btn.loading .btn-loader {
+            display: block;
+        }
+
+        .input-top .generate-btn.loading {
+            pointer-events: none;
+        }
+
+        .input-top .generate-btn:hover:not(.loading) {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
         }
 
-        .input-top .generate-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         /* RECORDING INDICATOR */
@@ -360,23 +389,6 @@
             0% { opacity: 1; }
             50% { opacity: 0.5; }
             100% { opacity: 1; }
-        }
-
-        /* LOADER */
-        .loader {
-            display: none;
-            margin: 2rem auto;
-            width: 40px;
-            height: 40px;
-            border: 3px solid #e5e7eb;
-            border-top: 3px solid #6366f1;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
         }
 
         /* RESULT AREA */
@@ -485,6 +497,34 @@
         .result-area .text-response {
             position: relative;
             width: 100%;
+        }
+
+        /* CODE BLOCK STYLING */
+        .result-area .text-response pre {
+            background: #1a1a2e;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            margin: 0.5rem 0;
+        }
+
+        .result-area .text-response code {
+            background: #f3f4f6;
+            padding: 0.15rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #1f2937;
+        }
+
+        .result-area .text-response pre code {
+            background: transparent;
+            padding: 0;
+            color: #e2e8f0;
         }
 
         /* ACTION BAR */
@@ -632,6 +672,11 @@
                 bottom: 8px;
                 left: 8px;
             }
+
+            .input-top .text-field {
+                min-height: 180px;
+                padding: 1.5rem 3rem 1.5rem 0.8rem;
+            }
         }
 
         @media (max-width: 640px) {
@@ -674,10 +719,10 @@
             }
 
             .input-top .text-field {
-                min-height: 120px;
+                min-height: 160px;
                 width: 100%;
                 font-size: 0.85rem;
-                padding: 1rem 3rem 1rem 0.8rem;
+                padding: 1.2rem 3rem 1.2rem 0.8rem;
             }
 
             .input-top .add-btn {
@@ -769,9 +814,9 @@
             }
 
             .input-top .text-field {
-                min-height: 100px;
+                min-height: 140px;
                 font-size: 0.75rem;
-                padding: 0.8rem 2.8rem 0.8rem 0.6rem;
+                padding: 1rem 2.8rem 1rem 0.6rem;
             }
 
             .input-top .add-btn {
@@ -846,9 +891,9 @@
             }
 
             .input-top .text-field {
-                min-height: 80px;
+                min-height: 120px;
                 font-size: 0.7rem;
-                padding: 0.6rem 2.5rem 0.6rem 0.5rem;
+                padding: 0.8rem 2.5rem 0.8rem 0.5rem;
             }
 
             .input-top .add-btn {
@@ -939,12 +984,12 @@
                     <div class="recording-indicator" id="recordingIndicator">🔴 RECORDING...</div>
                     <button class="stop-recording-btn" id="stopRecordingBtn">⏹️ STOP</button>
                 </div>
-                <button class="generate-btn" id="generateBtn">GENERATE</button>
+                <button class="generate-btn" id="generateBtn">
+                    <span class="btn-text">GENERATE</span>
+                    <span class="btn-loader"></span>
+                </button>
             </div>
         </div>
-
-        <!-- LOADER -->
-        <div class="loader" id="loader"></div>
 
         <!-- ERROR -->
         <div class="error" id="error"></div>
@@ -988,7 +1033,6 @@
         // DOM ELEMENTS
         const promptInput = document.getElementById('promptInput');
         const generateBtn = document.getElementById('generateBtn');
-        const loader = document.getElementById('loader');
         const resultArea = document.getElementById('resultArea');
         const errorDiv = document.getElementById('error');
         const actionBar = document.getElementById('actionBar');
@@ -1043,7 +1087,6 @@
                 dropdownMenu.classList.remove('active');
 
                 if (mode === 'text') {
-                    // Just switch to text mode
                     errorDiv.style.display = 'none';
                 } else if (mode === 'image') {
                     const input = document.createElement('input');
@@ -1189,7 +1232,7 @@
         // ============================================================
         function autoAdjustHeight() {
             this.style.height = 'auto';
-            const newHeight = Math.min(this.scrollHeight, 400);
+            const newHeight = Math.min(this.scrollHeight, 500);
             this.style.height = newHeight + 'px';
         }
 
@@ -1228,7 +1271,6 @@
             resultArea.innerHTML = '';
 
             if (type === 'text') {
-                // Text response
                 const wrapper = document.createElement('div');
                 wrapper.className = 'text-response';
                 
@@ -1238,7 +1280,7 @@
                 wrapper.appendChild(label);
                 
                 const content = document.createElement('div');
-                content.textContent = data;
+                content.innerHTML = data;
                 wrapper.appendChild(content);
                 
                 wrapper.appendChild(closeBtn);
@@ -1246,7 +1288,6 @@
                 currentTextResponse = data;
                 currentType = 'text';
                 
-                // Show action bar with copy button
                 actionBar.style.display = 'flex';
                 previewBtn.style.display = 'none';
                 downloadBtn.style.display = 'none';
@@ -1254,7 +1295,6 @@
                 copyBtn.style.display = 'inline-flex';
                 
             } else {
-                // Image or Video response
                 const wrapper = document.createElement('div');
                 wrapper.className = 'result-wrapper';
                 
@@ -1286,7 +1326,6 @@
                 currentType = type;
                 currentTextResponse = null;
                 
-                // Show action bar with image/video actions
                 actionBar.style.display = 'flex';
                 previewBtn.style.display = 'inline-flex';
                 downloadBtn.style.display = 'inline-flex';
@@ -1312,8 +1351,8 @@
                 return;
             }
 
-            generateBtn.disabled = true;
-            loader.style.display = 'block';
+            // Show loading state on button
+            generateBtn.classList.add('loading');
             resultArea.innerHTML = '<div class="placeholder"><span class="icon">⏳</span>GENERATING...</div>';
             actionBar.style.display = 'none';
             currentImageUrl = null;
@@ -1377,8 +1416,7 @@
                 resultArea.innerHTML = '<div class="placeholder"><span class="icon">❌</span>GENERATION FAILED. PLEASE TRY AGAIN.</div>';
                 actionBar.style.display = 'none';
             } finally {
-                generateBtn.disabled = false;
-                loader.style.display = 'none';
+                generateBtn.classList.remove('loading');
             }
         }
 
@@ -1410,15 +1448,15 @@
         // ============================================================
         copyBtn.addEventListener('click', function() {
             if (currentTextResponse) {
-                navigator.clipboard.writeText(currentTextResponse).then(() => {
+                const textContent = currentTextResponse.replace(/<[^>]*>/g, '');
+                navigator.clipboard.writeText(textContent).then(() => {
                     copyBtn.textContent = '✅ COPIED';
                     setTimeout(() => {
                         copyBtn.innerHTML = '📋 COPY';
                     }, 2000);
                 }).catch(() => {
-                    // Fallback
                     const textarea = document.createElement('textarea');
-                    textarea.value = currentTextResponse;
+                    textarea.value = textContent;
                     document.body.appendChild(textarea);
                     textarea.select();
                     document.execCommand('copy');
