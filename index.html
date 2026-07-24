@@ -176,7 +176,7 @@
             border: 2px solid #e5e7eb;
             border-radius: 0.375rem;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-            min-width: 140px;
+            min-width: 160px;
             z-index: 20;
             overflow: hidden;
         }
@@ -326,7 +326,7 @@
             display: block;
         }
 
-        /* STOP RECORDING BUTTON (appears during recording) */
+        /* STOP RECORDING BUTTON */
         .stop-recording-btn {
             display: none;
             position: absolute;
@@ -386,12 +386,14 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             background: #fafafa;
             border-radius: 0.375rem;
             border: 2px dashed #e5e7eb;
             padding: 2rem;
             position: relative;
+            max-height: 600px;
+            overflow-y: auto;
         }
 
         .result-area .placeholder {
@@ -400,12 +402,39 @@
             text-align: center;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            margin: auto;
         }
 
         .result-area .placeholder .icon {
             font-size: 3rem;
             display: block;
             margin-bottom: 0.5rem;
+        }
+
+        /* TEXT RESPONSE */
+        .result-area .text-response {
+            width: 100%;
+            text-align: left;
+            padding: 1rem;
+            background: #ffffff;
+            border-radius: 0.375rem;
+            border: 1px solid #e5e7eb;
+            color: #1f2937;
+            font-size: 0.95rem;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .result-area .text-response .response-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #6366f1;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid #f3f4f6;
+            padding-bottom: 0.3rem;
         }
 
         .result-area .result-wrapper {
@@ -417,14 +446,15 @@
         .result-area .result-wrapper img,
         .result-area .result-wrapper video {
             max-width: 100%;
-            max-height: 500px;
+            max-height: 450px;
             border-radius: 0.375rem;
             background: #f3f4f6;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         }
 
-        /* CLOSE BUTTON ON RESULT IMAGE */
-        .result-area .result-wrapper .close-result {
+        /* CLOSE BUTTON ON RESULT */
+        .result-area .result-wrapper .close-result,
+        .result-area .text-response .close-result {
             position: absolute;
             top: -10px;
             right: -10px;
@@ -446,9 +476,15 @@
             z-index: 5;
         }
 
-        .result-area .result-wrapper .close-result:hover {
+        .result-area .result-wrapper .close-result:hover,
+        .result-area .text-response .close-result:hover {
             background: #dc2626;
             transform: scale(1.1);
+        }
+
+        .result-area .text-response {
+            position: relative;
+            width: 100%;
         }
 
         /* ACTION BAR */
@@ -702,9 +738,11 @@
                 min-height: 200px;
                 padding: 1rem;
                 border-radius: 0.375rem;
+                max-height: 400px;
             }
 
-            .result-area .result-wrapper .close-result {
+            .result-area .result-wrapper .close-result,
+            .result-area .text-response .close-result {
                 width: 22px;
                 height: 22px;
                 font-size: 0.7rem;
@@ -777,7 +815,8 @@
                 padding: 0.2rem 0.5rem;
             }
 
-            .result-area .result-wrapper .close-result {
+            .result-area .result-wrapper .close-result,
+            .result-area .text-response .close-result {
                 width: 20px;
                 height: 20px;
                 font-size: 0.6rem;
@@ -871,7 +910,7 @@
             <!-- TOP ROW: TEXT FIELD + GENERATE BUTTON -->
             <div class="input-top">
                 <div class="text-field-wrapper">
-                    <textarea class="text-field" id="promptInput" placeholder="DESCRIBE WHAT YOU WANT TO CREATE..." rows="1"></textarea>
+                    <textarea class="text-field" id="promptInput" placeholder="ASK ANYTHING OR DESCRIBE WHAT YOU WANT TO CREATE..." rows="1"></textarea>
                     
                     <!-- IMAGE PREVIEW - BOTTOM LEFT INSIDE TEXT FIELD - SMALL -->
                     <div class="image-preview" id="imagePreview">
@@ -883,6 +922,9 @@
                     <button class="add-btn" id="addBtn" title="ADD IMAGE / VIDEO / VOICE">+</button>
                     
                     <div class="dropdown-menu" id="dropdownMenu">
+                        <div class="dropdown-item" data-mode="text">
+                            <span class="icon">💬</span> TEXT
+                        </div>
                         <div class="dropdown-item" data-mode="image">
                             <span class="icon">🖼️</span> IMAGE
                         </div>
@@ -920,6 +962,7 @@
             <button class="action-btn" id="previewBtn">👁️ PREVIEW</button>
             <button class="action-btn primary" id="downloadBtn">⬇️ DOWNLOAD</button>
             <button class="action-btn" id="editBtn">✏️ EDIT</button>
+            <button class="action-btn" id="copyBtn">📋 COPY</button>
         </div>
 
         <!-- PREVIEW MODAL -->
@@ -934,7 +977,8 @@
     <script>
         let currentImageUrl = null;
         let currentType = 'image';
-        let selectedMode = 'image';
+        let currentTextResponse = null;
+        let selectedMode = 'text';
         let mediaRecorder = null;
         let audioChunks = [];
         let isRecording = false;
@@ -951,6 +995,7 @@
         const previewBtn = document.getElementById('previewBtn');
         const downloadBtn = document.getElementById('downloadBtn');
         const editBtn = document.getElementById('editBtn');
+        const copyBtn = document.getElementById('copyBtn');
         const previewModal = document.getElementById('previewModal');
         const previewImageModal = document.getElementById('previewImageModal');
         const closeModal = document.getElementById('closeModal');
@@ -971,13 +1016,12 @@
             dropdownMenu.classList.toggle('active');
         });
 
-        // Close dropdown when clicking outside
         document.addEventListener('click', function() {
             dropdownMenu.classList.remove('active');
         });
 
         // ============================================================
-        // REMOVE UPLOADED IMAGE FROM INPUT FIELD
+        // REMOVE UPLOADED IMAGE
         // ============================================================
         removeImageBtn.addEventListener('click', function(e) {
             e.stopPropagation();
@@ -998,7 +1042,10 @@
                 selectedMode = mode;
                 dropdownMenu.classList.remove('active');
 
-                if (mode === 'image') {
+                if (mode === 'text') {
+                    // Just switch to text mode
+                    errorDiv.style.display = 'none';
+                } else if (mode === 'image') {
                     const input = document.createElement('input');
                     input.type = 'file';
                     input.accept = 'image/*';
@@ -1051,11 +1098,10 @@
         });
 
         // ============================================================
-        // VOICE RECORDING WITH STOP BUTTON
+        // VOICE RECORDING
         // ============================================================
         async function startVoiceRecording() {
             if (isRecording) {
-                // If already recording, stop it
                 stopVoiceRecording();
                 return;
             }
@@ -1075,7 +1121,6 @@
                     isRecording = false;
                     
                     try {
-                        // Convert audio to text using Web Speech API
                         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
                             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                             const recognition = new SpeechRecognition();
@@ -1087,7 +1132,6 @@
                                 const transcript = event.results[0][0].transcript;
                                 promptInput.value = transcript.toUpperCase();
                                 autoAdjustHeight.call(promptInput);
-                                // Auto-generate after voice capture
                                 setTimeout(() => generate(), 300);
                             };
                             
@@ -1135,7 +1179,6 @@
             stopRecordingBtn.classList.remove('active');
         }
 
-        // Stop recording button
         stopRecordingBtn.addEventListener('click', function(e) {
             e.stopPropagation();
             stopVoiceRecording();
@@ -1164,16 +1207,13 @@
         });
 
         // ============================================================
-        // DISPLAY RESULT WITH CLOSE BUTTON
+        // DISPLAY RESULT
         // ============================================================
-        function displayResult(type, url) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'result-wrapper';
-            
+        function displayResult(type, data) {
             const closeBtn = document.createElement('button');
             closeBtn.className = 'close-result';
             closeBtn.innerHTML = '✕';
-            closeBtn.title = 'Dismiss image';
+            closeBtn.title = 'Dismiss';
             closeBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
                 resultArea.innerHTML = `<div class="placeholder">
@@ -1182,34 +1222,78 @@
                 </div>`;
                 actionBar.style.display = 'none';
                 currentImageUrl = null;
+                currentTextResponse = null;
             });
-            
-            if (type === 'image') {
-                const img = document.createElement('img');
-                img.src = url;
-                img.alt = 'GENERATED IMAGE';
-                img.onerror = function() {
-                    this.alt = 'IMAGE LOAD FAILED';
-                    this.style.border = '2px solid #ef4444';
-                };
-                wrapper.appendChild(img);
+
+            resultArea.innerHTML = '';
+
+            if (type === 'text') {
+                // Text response
+                const wrapper = document.createElement('div');
+                wrapper.className = 'text-response';
+                
+                const label = document.createElement('div');
+                label.className = 'response-label';
+                label.textContent = '💬 AI RESPONSE';
+                wrapper.appendChild(label);
+                
+                const content = document.createElement('div');
+                content.textContent = data;
+                wrapper.appendChild(content);
+                
+                wrapper.appendChild(closeBtn);
+                resultArea.appendChild(wrapper);
+                currentTextResponse = data;
+                currentType = 'text';
+                
+                // Show action bar with copy button
+                actionBar.style.display = 'flex';
+                previewBtn.style.display = 'none';
+                downloadBtn.style.display = 'none';
+                editBtn.style.display = 'none';
+                copyBtn.style.display = 'inline-flex';
+                
             } else {
-                const video = document.createElement('video');
-                video.controls = true;
-                video.autoplay = true;
-                video.loop = true;
-                const source = document.createElement('source');
-                source.src = url;
-                source.type = 'video/mp4';
-                video.appendChild(source);
-                video.innerHTML = 'YOUR BROWSER DOES NOT SUPPORT VIDEO PLAYBACK.';
-                wrapper.appendChild(video);
+                // Image or Video response
+                const wrapper = document.createElement('div');
+                wrapper.className = 'result-wrapper';
+                
+                if (type === 'image') {
+                    const img = document.createElement('img');
+                    img.src = data;
+                    img.alt = 'GENERATED IMAGE';
+                    img.onerror = function() {
+                        this.alt = 'IMAGE LOAD FAILED';
+                        this.style.border = '2px solid #ef4444';
+                    };
+                    wrapper.appendChild(img);
+                } else {
+                    const video = document.createElement('video');
+                    video.controls = true;
+                    video.autoplay = true;
+                    video.loop = true;
+                    const source = document.createElement('source');
+                    source.src = data;
+                    source.type = 'video/mp4';
+                    video.appendChild(source);
+                    video.innerHTML = 'YOUR BROWSER DOES NOT SUPPORT VIDEO PLAYBACK.';
+                    wrapper.appendChild(video);
+                }
+                
+                wrapper.appendChild(closeBtn);
+                resultArea.appendChild(wrapper);
+                currentImageUrl = data;
+                currentType = type;
+                currentTextResponse = null;
+                
+                // Show action bar with image/video actions
+                actionBar.style.display = 'flex';
+                previewBtn.style.display = 'inline-flex';
+                downloadBtn.style.display = 'inline-flex';
+                editBtn.style.display = 'inline-flex';
+                copyBtn.style.display = 'none';
             }
             
-            wrapper.appendChild(closeBtn);
-            resultArea.innerHTML = '';
-            resultArea.appendChild(wrapper);
-            actionBar.style.display = 'flex';
             errorDiv.style.display = 'none';
         }
 
@@ -1223,7 +1307,7 @@
             errorDiv.textContent = '';
 
             if (!prompt) {
-                errorDiv.textContent = '⚠️ PLEASE ENTER A PROMPT';
+                errorDiv.textContent = '⚠️ PLEASE ENTER A PROMPT OR QUESTION';
                 errorDiv.style.display = 'block';
                 return;
             }
@@ -1233,6 +1317,7 @@
             resultArea.innerHTML = '<div class="placeholder"><span class="icon">⏳</span>GENERATING...</div>';
             actionBar.style.display = 'none';
             currentImageUrl = null;
+            currentTextResponse = null;
 
             try {
                 const requestBody = { 
@@ -1263,6 +1348,13 @@
                     throw new Error(data.error || 'SOMETHING WENT WRONG');
                 }
 
+                // Handle text response
+                if (data.type === 'text') {
+                    displayResult('text', data.text || data.response || data.message || 'No response received.');
+                    return;
+                }
+
+                // Handle image/video response
                 let imageUrl = data.url;
 
                 if (typeof imageUrl === 'string') {
@@ -1293,7 +1385,7 @@
         generateBtn.addEventListener('click', generate);
 
         // ============================================================
-        // EDIT BUTTON - SEND GENERATED IMAGE TO INPUT FIELD
+        // EDIT BUTTON
         // ============================================================
         editBtn.addEventListener('click', function() {
             if (currentImageUrl) {
@@ -1310,6 +1402,32 @@
                 </div>`;
                 actionBar.style.display = 'none';
                 promptInput.focus();
+            }
+        });
+
+        // ============================================================
+        // COPY BUTTON
+        // ============================================================
+        copyBtn.addEventListener('click', function() {
+            if (currentTextResponse) {
+                navigator.clipboard.writeText(currentTextResponse).then(() => {
+                    copyBtn.textContent = '✅ COPIED';
+                    setTimeout(() => {
+                        copyBtn.innerHTML = '📋 COPY';
+                    }, 2000);
+                }).catch(() => {
+                    // Fallback
+                    const textarea = document.createElement('textarea');
+                    textarea.value = currentTextResponse;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    copyBtn.textContent = '✅ COPIED';
+                    setTimeout(() => {
+                        copyBtn.innerHTML = '📋 COPY';
+                    }, 2000);
+                });
             }
         });
 
