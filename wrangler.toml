@@ -1,0 +1,12 @@
+name = "ai"
+compatibility_date = "2024-01-01"
+
+# AI binding for Pages Functions
+[[ai]]
+binding = "AI"
+
+# KV namespace binding - USE YOUR ACTUAL ID
+[[kv_namespaces]]
+binding = "GENERATIONS"
+id = "ec7574d9db544786a5daa8b2327f0d68"
+preview_id = "your-preview-id-if-available"
