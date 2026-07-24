@@ -5,12 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FIXORIUM AI - FREE IMAGE & VIDEO GENERATOR</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             min-height: 100vh;
@@ -20,13 +15,7 @@
             align-items: flex-start;
             padding: 2rem 1rem;
         }
-
-        .container {
-            max-width: 900px;
-            width: 100%;
-        }
-
-        /* HEADER - LOGO LEFT, TEXT RIGHT */
+        .container { max-width: 900px; width: 100%; }
         .header {
             display: flex;
             align-items: center;
@@ -37,14 +26,12 @@
             flex-wrap: nowrap;
             gap: 0.5rem;
         }
-
         .header-left {
             display: flex;
             align-items: center;
             gap: 0.75rem;
             flex-shrink: 0;
         }
-
         .header-left .logo {
             width: 40px;
             height: 40px;
@@ -52,7 +39,6 @@
             object-fit: contain;
             flex-shrink: 0;
         }
-
         .header-left .brand-name {
             font-size: 1.5rem;
             font-weight: 800;
@@ -63,7 +49,6 @@
             text-transform: uppercase;
             white-space: nowrap;
         }
-
         .header-right {
             font-size: clamp(0.55rem, 1.2vw, 0.75rem);
             font-weight: 600;
@@ -78,8 +63,6 @@
             text-align: center;
             min-width: fit-content;
         }
-
-        /* INPUT AREA - NO CARD */
         .input-area {
             background: transparent;
             padding: 0;
@@ -87,8 +70,6 @@
             flex-direction: column;
             gap: 0.75rem;
         }
-
-        /* TOP ROW: TEXT FIELD + GENERATE BUTTON */
         .input-top {
             display: flex;
             align-items: stretch;
@@ -97,13 +78,10 @@
             padding: 0;
             position: relative;
         }
-
-        /* TEXT FIELD - WITH + BUTTON INSIDE */
         .input-top .text-field-wrapper {
             flex: 1;
             position: relative;
         }
-
         .input-top .text-field {
             width: 100%;
             padding: 2rem 3.5rem 2rem 1rem;
@@ -114,30 +92,16 @@
             background: transparent;
             color: #1f2937;
             line-height: 2;
-            text-transform: uppercase;
-            overflow-y: auto;
             border: 2px dashed #d1d5db;
             border-radius: 0.375rem;
             outline: none;
             transition: all 0.2s;
             resize: none;
         }
-
-        .input-top .text-field::placeholder {
-            color: #9ca3af;
-            text-transform: none;
-        }
-
         .input-top .text-field:focus {
             border-color: #6366f1;
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
         }
-
-        .input-top .text-field:focus {
-            text-transform: uppercase;
-        }
-
-        /* + BUTTON INSIDE TEXT FIELD - BOTTOM RIGHT */
         .input-top .add-btn {
             position: absolute;
             bottom: 12px;
@@ -159,14 +123,11 @@
             line-height: 1;
             z-index: 10;
         }
-
         .input-top .add-btn:hover {
             border-color: #6366f1;
             color: #6366f1;
             background: #f5f3ff;
         }
-
-        /* DROPDOWN MENU */
         .input-top .dropdown-menu {
             display: none;
             position: absolute;
@@ -180,11 +141,7 @@
             z-index: 20;
             overflow: hidden;
         }
-
-        .input-top .dropdown-menu.active {
-            display: block;
-        }
-
+        .input-top .dropdown-menu.active { display: block; }
         .input-top .dropdown-menu .dropdown-item {
             padding: 0.6rem 1rem;
             font-size: 0.8rem;
@@ -199,21 +156,11 @@
             align-items: center;
             gap: 0.5rem;
         }
-
-        .input-top .dropdown-menu .dropdown-item:last-child {
-            border-bottom: none;
-        }
-
+        .input-top .dropdown-menu .dropdown-item:last-child { border-bottom: none; }
         .input-top .dropdown-menu .dropdown-item:hover {
             background: #f5f3ff;
             color: #6366f1;
         }
-
-        .input-top .dropdown-menu .dropdown-item .icon {
-            font-size: 1rem;
-        }
-
-        /* IMAGE PREVIEW - BOTTOM LEFT INSIDE TEXT FIELD - SMALL SIZE */
         .input-top .image-preview {
             display: none;
             position: absolute;
@@ -228,17 +175,12 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             z-index: 15;
         }
-
-        .input-top .image-preview.active {
-            display: block;
-        }
-
+        .input-top .image-preview.active { display: block; }
         .input-top .image-preview img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
-
         .input-top .image-preview .remove-image {
             position: absolute;
             top: -6px;
@@ -257,23 +199,7 @@
             line-height: 1;
             padding: 0;
         }
-
-        .input-top .image-preview .remove-image:hover {
-            background: #dc2626;
-        }
-
-        /* VIDEO ICON OVERLAY FOR VIDEO UPLOADS */
-        .input-top .image-preview .video-icon {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #6366f1;
-            font-size: 1.2rem;
-            opacity: 0.8;
-            pointer-events: none;
-        }
-
+        .input-top .image-preview .remove-image:hover { background: #dc2626; }
         .input-top .generate-btn {
             padding: 0.6rem 1.8rem;
             border: none;
@@ -291,49 +217,30 @@
             height: 56px;
             align-self: center;
             min-width: 120px;
-            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-
-        .input-top .generate-btn .btn-text {
-            transition: opacity 0.3s;
-        }
-
         .input-top .generate-btn .btn-loader {
             display: none;
             width: 20px;
             height: 20px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(255,255,255,0.3);
             border-top: 2px solid #ffffff;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
-
-        .input-top .generate-btn.loading .btn-text {
-            display: none;
-        }
-
-        .input-top .generate-btn.loading .btn-loader {
-            display: block;
-        }
-
-        .input-top .generate-btn.loading {
-            pointer-events: none;
-        }
-
+        .input-top .generate-btn.loading .btn-text { display: none; }
+        .input-top .generate-btn.loading .btn-loader { display: block; }
+        .input-top .generate-btn.loading { pointer-events: none; }
         .input-top .generate-btn:hover:not(.loading) {
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+            box-shadow: 0 4px 12px rgba(99,102,241,0.35);
         }
-
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
-        /* RECORDING INDICATOR */
         .recording-indicator {
             display: none;
             position: absolute;
@@ -346,16 +253,10 @@
             font-size: 0.7rem;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
             animation: pulse 1s infinite;
             z-index: 15;
         }
-
-        .recording-indicator.active {
-            display: block;
-        }
-
-        /* STOP RECORDING BUTTON */
+        .recording-indicator.active { display: block; }
         .stop-recording-btn {
             display: none;
             position: absolute;
@@ -371,27 +272,16 @@
             text-transform: uppercase;
             cursor: pointer;
             z-index: 16;
-            letter-spacing: 0.5px;
-            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+            box-shadow: 0 2px 8px rgba(239,68,68,0.3);
             transition: all 0.2s;
         }
-
-        .stop-recording-btn:hover {
-            background: #dc2626;
-            transform: scale(1.05);
-        }
-
-        .stop-recording-btn.active {
-            display: block;
-        }
-
+        .stop-recording-btn:hover { background: #dc2626; transform: scale(1.05); }
+        .stop-recording-btn.active { display: block; }
         @keyframes pulse {
             0% { opacity: 1; }
             50% { opacity: 0.5; }
             100% { opacity: 1; }
         }
-
-        /* RESULT AREA */
         .result-area {
             margin-top: 2rem;
             min-height: 300px;
@@ -407,7 +297,6 @@
             max-height: 600px;
             overflow-y: auto;
         }
-
         .result-area .placeholder {
             color: #9ca3af;
             font-size: 1rem;
@@ -416,14 +305,11 @@
             letter-spacing: 0.5px;
             margin: auto;
         }
-
         .result-area .placeholder .icon {
             font-size: 3rem;
             display: block;
             margin-bottom: 0.5rem;
         }
-
-        /* TEXT RESPONSE */
         .result-area .text-response {
             width: 100%;
             text-align: left;
@@ -436,8 +322,8 @@
             line-height: 1.8;
             white-space: pre-wrap;
             word-wrap: break-word;
+            position: relative;
         }
-
         .result-area .text-response .response-label {
             font-size: 0.7rem;
             font-weight: 600;
@@ -448,23 +334,19 @@
             border-bottom: 1px solid #f3f4f6;
             padding-bottom: 0.3rem;
         }
-
         .result-area .result-wrapper {
             position: relative;
             display: inline-block;
             max-width: 100%;
         }
-
         .result-area .result-wrapper img,
         .result-area .result-wrapper video {
             max-width: 100%;
             max-height: 450px;
             border-radius: 0.375rem;
             background: #f3f4f6;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
-
-        /* CLOSE BUTTON ON RESULT */
         .result-area .result-wrapper .close-result,
         .result-area .text-response .close-result {
             position: absolute;
@@ -483,51 +365,15 @@
             justify-content: center;
             line-height: 1;
             padding: 0;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
             transition: all 0.2s;
             z-index: 5;
         }
-
         .result-area .result-wrapper .close-result:hover,
         .result-area .text-response .close-result:hover {
             background: #dc2626;
             transform: scale(1.1);
         }
-
-        .result-area .text-response {
-            position: relative;
-            width: 100%;
-        }
-
-        /* CODE BLOCK STYLING */
-        .result-area .text-response pre {
-            background: #1a1a2e;
-            color: #e2e8f0;
-            padding: 1rem;
-            border-radius: 0.375rem;
-            overflow-x: auto;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
-            line-height: 1.6;
-            margin: 0.5rem 0;
-        }
-
-        .result-area .text-response code {
-            background: #f3f4f6;
-            padding: 0.15rem 0.4rem;
-            border-radius: 0.25rem;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
-            color: #1f2937;
-        }
-
-        .result-area .text-response pre code {
-            background: transparent;
-            padding: 0;
-            color: #e2e8f0;
-        }
-
-        /* ACTION BAR */
         .action-bar {
             display: flex;
             gap: 0.5rem;
@@ -535,7 +381,6 @@
             flex-wrap: wrap;
             justify-content: center;
         }
-
         .action-bar .action-btn {
             padding: 0.4rem 1rem;
             border: 1px solid #e5e7eb;
@@ -554,25 +399,20 @@
             letter-spacing: 0.3px;
             height: 36px;
         }
-
         .action-bar .action-btn:hover {
             border-color: #6366f1;
             color: #6366f1;
             background: #f5f3ff;
         }
-
         .action-bar .action-btn.primary {
             background: #6366f1;
             color: #fff;
             border-color: #6366f1;
         }
-
         .action-bar .action-btn.primary:hover {
             background: #4f46e5;
             border-color: #4f46e5;
         }
-
-        /* ERROR */
         .error {
             color: #ef4444;
             margin-top: 1rem;
@@ -587,8 +427,6 @@
             font-weight: 600;
             font-size: 0.85rem;
         }
-
-        /* MODAL */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -596,30 +434,20 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0,0,0,0.85);
             z-index: 1000;
             justify-content: center;
             align-items: center;
             padding: 2rem;
         }
-
-        .modal-overlay.active {
-            display: flex;
-        }
-
-        .modal-content {
-            max-width: 90%;
-            max-height: 90%;
-            position: relative;
-        }
-
+        .modal-overlay.active { display: flex; }
+        .modal-content { max-width: 90%; max-height: 90%; position: relative; }
         .modal-content img {
             max-width: 100%;
             max-height: 85vh;
             border-radius: 0.375rem;
-            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.5);
         }
-
         .modal-close {
             position: absolute;
             top: -2.5rem;
@@ -632,316 +460,33 @@
             opacity: 0.7;
             transition: opacity 0.2s;
         }
-
-        .modal-close:hover {
-            opacity: 1;
-        }
-
-        /* RESPONSIVE */
-        @media (max-width: 768px) {
-            .header {
-                flex-wrap: nowrap;
-                gap: 0.4rem;
-            }
-
-            .header-left .brand-name {
-                font-size: 1.1rem;
-            }
-
-            .header-left .logo {
-                width: 32px;
-                height: 32px;
-            }
-
-            .header-right {
-                font-size: 0.55rem;
-                padding: 0.3rem 0.6rem;
-                letter-spacing: 0.3px;
-            }
-
-            .input-top .generate-btn {
-                min-width: 100px;
-                font-size: 0.75rem;
-                padding: 0.5rem 1.2rem;
-                height: 48px;
-            }
-
-            .input-top .image-preview {
-                width: 38px;
-                height: 38px;
-                bottom: 8px;
-                left: 8px;
-            }
-
-            .input-top .text-field {
-                min-height: 180px;
-                padding: 1.5rem 3rem 1.5rem 0.8rem;
-            }
-        }
+        .modal-close:hover { opacity: 1; }
 
         @media (max-width: 640px) {
-            body {
-                padding: 1rem 0.75rem;
-            }
-
-            .header {
-                padding: 0.25rem 0 1rem 0;
-                gap: 0.3rem;
-            }
-
-            .header-left {
-                gap: 0.4rem;
-            }
-
-            .header-left .brand-name {
-                font-size: 0.9rem;
-                letter-spacing: 0.5px;
-            }
-
-            .header-left .logo {
-                width: 28px;
-                height: 28px;
-            }
-
-            .header-right {
-                font-size: 0.45rem;
-                padding: 0.25rem 0.5rem;
-                letter-spacing: 0.2px;
-                border-radius: 1.5rem;
-            }
-
-            .input-top {
-                flex-wrap: wrap;
-            }
-
-            .input-top .text-field-wrapper {
-                width: 100%;
-            }
-
-            .input-top .text-field {
-                min-height: 160px;
-                width: 100%;
-                font-size: 0.85rem;
-                padding: 1.2rem 3rem 1.2rem 0.8rem;
-            }
-
-            .input-top .add-btn {
-                bottom: 10px;
-                right: 10px;
-                width: 28px;
-                height: 28px;
-                font-size: 1rem;
-            }
-
-            .input-top .dropdown-menu {
-                bottom: 45px;
-                right: 10px;
-                min-width: 120px;
-            }
-
-            .input-top .image-preview {
-                width: 34px;
-                height: 34px;
-                bottom: 8px;
-                left: 8px;
-            }
-
-            .input-top .image-preview .remove-image {
-                width: 14px;
-                height: 14px;
-                font-size: 0.5rem;
-                top: -5px;
-                right: -5px;
-            }
-
-            .input-top .generate-btn {
-                width: 100%;
-                padding: 0.6rem;
-                text-align: center;
-                font-size: 0.8rem;
-                border-radius: 0.375rem;
-                height: 44px;
-                align-self: stretch;
-                min-width: unset;
-            }
-
-            .stop-recording-btn {
-                bottom: 45px;
-                right: 45px;
-                font-size: 0.6rem;
-                padding: 0.25rem 0.6rem;
-            }
-
-            .action-bar .action-btn {
-                padding: 0.35rem 0.7rem;
-                font-size: 0.65rem;
-                border-radius: 0.375rem;
-                height: 32px;
-            }
-
-            .result-area {
-                min-height: 200px;
-                padding: 1rem;
-                border-radius: 0.375rem;
-                max-height: 400px;
-            }
-
+            body { padding: 1rem 0.75rem; }
+            .header { flex-wrap: wrap; gap: 0.3rem; }
+            .header-left .brand-name { font-size: 0.9rem; }
+            .header-left .logo { width: 28px; height: 28px; }
+            .header-right { font-size: 0.45rem; padding: 0.25rem 0.5rem; }
+            .input-top { flex-wrap: wrap; }
+            .input-top .text-field-wrapper { width: 100%; }
+            .input-top .text-field { min-height: 160px; font-size: 0.85rem; padding: 1.2rem 3rem 1.2rem 0.8rem; }
+            .input-top .generate-btn { width: 100%; height: 44px; font-size: 0.8rem; min-width: unset; }
+            .result-area { min-height: 200px; padding: 1rem; max-height: 400px; }
             .result-area .result-wrapper .close-result,
-            .result-area .text-response .close-result {
-                width: 22px;
-                height: 22px;
-                font-size: 0.7rem;
-                top: -8px;
-                right: -8px;
-            }
+            .result-area .text-response .close-result { width: 22px; height: 22px; font-size: 0.7rem; top: -8px; right: -8px; }
         }
-
         @media (max-width: 480px) {
-            .header-left .brand-name {
-                font-size: 0.75rem;
-                letter-spacing: 0.3px;
-            }
-
-            .header-left .logo {
-                width: 24px;
-                height: 24px;
-            }
-
-            .header-right {
-                font-size: 0.4rem;
-                padding: 0.2rem 0.4rem;
-                letter-spacing: 0.1px;
-            }
-
-            .input-top .text-field {
-                min-height: 140px;
-                font-size: 0.75rem;
-                padding: 1rem 2.8rem 1rem 0.6rem;
-            }
-
-            .input-top .add-btn {
-                bottom: 8px;
-                right: 8px;
-                width: 24px;
-                height: 24px;
-                font-size: 0.85rem;
-            }
-
-            .input-top .dropdown-menu {
-                bottom: 40px;
-                right: 8px;
-                min-width: 100px;
-            }
-
-            .input-top .dropdown-menu .dropdown-item {
-                font-size: 0.7rem;
-                padding: 0.4rem 0.8rem;
-            }
-
-            .input-top .image-preview {
-                width: 30px;
-                height: 30px;
-                bottom: 6px;
-                left: 6px;
-            }
-
-            .input-top .image-preview .remove-image {
-                width: 12px;
-                height: 12px;
-                font-size: 0.45rem;
-                top: -4px;
-                right: -4px;
-            }
-
-            .stop-recording-btn {
-                bottom: 38px;
-                right: 38px;
-                font-size: 0.5rem;
-                padding: 0.2rem 0.5rem;
-            }
-
-            .result-area .result-wrapper .close-result,
-            .result-area .text-response .close-result {
-                width: 20px;
-                height: 20px;
-                font-size: 0.6rem;
-                top: -6px;
-                right: -6px;
-            }
-        }
-
-        @media (max-width: 400px) {
-            .header {
-                gap: 0.2rem;
-                padding: 0.15rem 0 0.75rem 0;
-            }
-
-            .header-left .brand-name {
-                font-size: 0.65rem;
-            }
-
-            .header-left .logo {
-                width: 20px;
-                height: 20px;
-            }
-
-            .header-right {
-                font-size: 0.35rem;
-                padding: 0.15rem 0.35rem;
-            }
-
-            .input-top .text-field {
-                min-height: 120px;
-                font-size: 0.7rem;
-                padding: 0.8rem 2.5rem 0.8rem 0.5rem;
-            }
-
-            .input-top .add-btn {
-                bottom: 6px;
-                right: 6px;
-                width: 22px;
-                height: 22px;
-                font-size: 0.75rem;
-            }
-
-            .input-top .dropdown-menu {
-                bottom: 35px;
-                right: 6px;
-                min-width: 90px;
-            }
-
-            .input-top .dropdown-menu .dropdown-item {
-                font-size: 0.6rem;
-                padding: 0.3rem 0.6rem;
-            }
-
-            .input-top .image-preview {
-                width: 26px;
-                height: 26px;
-                bottom: 5px;
-                left: 5px;
-            }
-
-            .input-top .image-preview .remove-image {
-                width: 10px;
-                height: 10px;
-                font-size: 0.4rem;
-                top: -3px;
-                right: -3px;
-            }
-
-            .stop-recording-btn {
-                bottom: 32px;
-                right: 32px;
-                font-size: 0.45rem;
-                padding: 0.15rem 0.4rem;
-            }
+            .header-left .brand-name { font-size: 0.75rem; }
+            .header-left .logo { width: 24px; height: 24px; }
+            .header-right { font-size: 0.4rem; padding: 0.2rem 0.4rem; }
+            .input-top .text-field { min-height: 140px; font-size: 0.75rem; padding: 1rem 2.8rem 1rem 0.6rem; }
+            .input-top .add-btn { width: 24px; height: 24px; font-size: 0.85rem; bottom: 8px; right: 8px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- HEADER: LOGO LEFT, TEXT RIGHT -->
         <div class="header">
             <div class="header-left">
                 <img class="logo" src="https://i.postimg.cc/Nj54ywH5/circle.png" alt="FIXORIUM AI" />
@@ -950,37 +495,21 @@
             <div class="header-right">AI CLOUD FREE SERVICE</div>
         </div>
 
-        <!-- INPUT AREA - NO CARD -->
         <div class="input-area">
-            <!-- TOP ROW: TEXT FIELD + GENERATE BUTTON -->
             <div class="input-top">
                 <div class="text-field-wrapper">
                     <textarea class="text-field" id="promptInput" placeholder="ASK ANYTHING OR DESCRIBE WHAT YOU WANT TO CREATE..." rows="1"></textarea>
-                    
-                    <!-- IMAGE PREVIEW - BOTTOM LEFT INSIDE TEXT FIELD - SMALL -->
                     <div class="image-preview" id="imagePreview">
                         <img id="previewImageSrc" src="" alt="UPLOADED" />
-                        <span class="video-icon" id="videoIcon" style="display:none;">▶</span>
                         <button class="remove-image" id="removeImageBtn">✕</button>
                     </div>
-
-                    <button class="add-btn" id="addBtn" title="ADD IMAGE / VIDEO / VOICE">+</button>
-                    
+                    <button class="add-btn" id="addBtn">+</button>
                     <div class="dropdown-menu" id="dropdownMenu">
-                        <div class="dropdown-item" data-mode="text">
-                            <span class="icon">💬</span> TEXT
-                        </div>
-                        <div class="dropdown-item" data-mode="image">
-                            <span class="icon">🖼️</span> IMAGE
-                        </div>
-                        <div class="dropdown-item" data-mode="video">
-                            <span class="icon">🎬</span> VIDEO
-                        </div>
-                        <div class="dropdown-item" data-mode="voice">
-                            <span class="icon">🎤</span> VOICE
-                        </div>
+                        <div class="dropdown-item" data-mode="text">💬 TEXT</div>
+                        <div class="dropdown-item" data-mode="image">🖼️ IMAGE</div>
+                        <div class="dropdown-item" data-mode="video">🎬 VIDEO</div>
+                        <div class="dropdown-item" data-mode="voice">🎤 VOICE</div>
                     </div>
-                    
                     <div class="recording-indicator" id="recordingIndicator">🔴 RECORDING...</div>
                     <button class="stop-recording-btn" id="stopRecordingBtn">⏹️ STOP</button>
                 </div>
@@ -991,26 +520,19 @@
             </div>
         </div>
 
-        <!-- ERROR -->
         <div class="error" id="error"></div>
-
-        <!-- RESULT AREA -->
         <div class="result-area" id="resultArea">
             <div class="placeholder">
                 <span class="icon">✨</span>
                 YOUR CREATION WILL APPEAR HERE
             </div>
         </div>
-
-        <!-- ACTION BAR -->
         <div class="action-bar" id="actionBar" style="display:none;">
             <button class="action-btn" id="previewBtn">👁️ PREVIEW</button>
             <button class="action-btn primary" id="downloadBtn">⬇️ DOWNLOAD</button>
             <button class="action-btn" id="editBtn">✏️ EDIT</button>
             <button class="action-btn" id="copyBtn">📋 COPY</button>
         </div>
-
-        <!-- PREVIEW MODAL -->
         <div class="modal-overlay" id="previewModal">
             <div class="modal-content">
                 <button class="modal-close" id="closeModal">✕</button>
@@ -1020,17 +542,9 @@
     </div>
 
     <script>
-        let currentImageUrl = null;
-        let currentType = 'image';
-        let currentTextResponse = null;
-        let selectedMode = 'text';
-        let mediaRecorder = null;
-        let audioChunks = [];
-        let isRecording = false;
-        let uploadedImageData = null;
-        let uploadedFileType = 'image';
+        let currentImageUrl = null, currentType = 'image', currentTextResponse = null, selectedMode = 'text';
+        let mediaRecorder = null, audioChunks = [], isRecording = false, uploadedImageData = null;
 
-        // DOM ELEMENTS
         const promptInput = document.getElementById('promptInput');
         const generateBtn = document.getElementById('generateBtn');
         const resultArea = document.getElementById('resultArea');
@@ -1050,83 +564,34 @@
         const imagePreview = document.getElementById('imagePreview');
         const previewImageSrc = document.getElementById('previewImageSrc');
         const removeImageBtn = document.getElementById('removeImageBtn');
-        const videoIcon = document.getElementById('videoIcon');
 
-        // ============================================================
-        // TOGGLE DROPDOWN
-        // ============================================================
-        addBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            dropdownMenu.classList.toggle('active');
-        });
+        addBtn.addEventListener('click', e => { e.stopPropagation(); dropdownMenu.classList.toggle('active'); });
+        document.addEventListener('click', () => dropdownMenu.classList.remove('active'));
 
-        document.addEventListener('click', function() {
-            dropdownMenu.classList.remove('active');
-        });
-
-        // ============================================================
-        // REMOVE UPLOADED IMAGE
-        // ============================================================
-        removeImageBtn.addEventListener('click', function(e) {
+        removeImageBtn.addEventListener('click', e => {
             e.stopPropagation();
             uploadedImageData = null;
-            uploadedFileType = 'image';
             imagePreview.classList.remove('active');
             previewImageSrc.src = '';
-            videoIcon.style.display = 'none';
         });
 
-        // ============================================================
-        // DROPDOWN ITEM SELECTION
-        // ============================================================
         document.querySelectorAll('.dropdown-item').forEach(item => {
             item.addEventListener('click', function(e) {
                 e.stopPropagation();
                 const mode = this.dataset.mode;
                 selectedMode = mode;
                 dropdownMenu.classList.remove('active');
-
-                if (mode === 'text') {
-                    errorDiv.style.display = 'none';
-                } else if (mode === 'image') {
+                if (mode === 'image' || mode === 'video') {
                     const input = document.createElement('input');
                     input.type = 'file';
-                    input.accept = 'image/*';
-                    input.multiple = false;
+                    input.accept = mode === 'image' ? 'image/*' : 'video/*';
                     input.onchange = function(e) {
-                        const files = e.target.files;
-                        if (files && files.length > 0) {
-                            const file = files[0];
-                            uploadedFileType = 'image';
+                        const file = e.target.files[0];
+                        if (file) {
                             const reader = new FileReader();
                             reader.onload = function(ev) {
-                                const imgData = ev.target.result;
-                                uploadedImageData = imgData;
-                                previewImageSrc.src = imgData;
-                                videoIcon.style.display = 'none';
-                                imagePreview.classList.add('active');
-                                errorDiv.style.display = 'none';
-                            };
-                            reader.readAsDataURL(file);
-                        }
-                    };
-                    input.click();
-                } else if (mode === 'video') {
-                    const input = document.createElement('input');
-                    input.type = 'file';
-                    input.accept = 'video/*';
-                    input.multiple = false;
-                    input.onchange = function(e) {
-                        const files = e.target.files;
-                        if (files && files.length > 0) {
-                            const file = files[0];
-                            uploadedFileType = 'video';
-                            const reader = new FileReader();
-                            reader.onload = function(ev) {
-                                const imgData = ev.target.result;
-                                uploadedImageData = imgData;
-                                previewImageSrc.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="%236366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3E%3Crect x="2" y="2" width="20" height="20" rx="2.18"%3E%3C/rect%3E%3Cpolygon points="10 6 17 12 10 18 10 6"%3E%3C/polygon%3E%3C/svg%3E';
-                                videoIcon.style.display = 'block';
+                                uploadedImageData = ev.target.result;
+                                previewImageSrc.src = uploadedImageData;
                                 imagePreview.classList.add('active');
                                 errorDiv.style.display = 'none';
                             };
@@ -1140,172 +605,97 @@
             });
         });
 
-        // ============================================================
-        // VOICE RECORDING
-        // ============================================================
         async function startVoiceRecording() {
-            if (isRecording) {
-                stopVoiceRecording();
-                return;
-            }
-
+            if (isRecording) { stopVoiceRecording(); return; }
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 mediaRecorder = new MediaRecorder(stream);
                 audioChunks = [];
-
-                mediaRecorder.ondataavailable = event => {
-                    audioChunks.push(event.data);
-                };
-
+                mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
                 mediaRecorder.onstop = async () => {
                     recordingIndicator.classList.remove('active');
                     stopRecordingBtn.classList.remove('active');
                     isRecording = false;
-                    
-                    try {
-                        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-                            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                            const recognition = new SpeechRecognition();
-                            recognition.lang = 'en-US';
-                            recognition.continuous = false;
-                            recognition.interimResults = false;
-
-                            recognition.onresult = function(event) {
-                                const transcript = event.results[0][0].transcript;
-                                promptInput.value = transcript.toUpperCase();
-                                autoAdjustHeight.call(promptInput);
-                                setTimeout(() => generate(), 300);
-                            };
-                            
-                            recognition.onerror = function(event) {
-                                console.error('Speech recognition error:', event.error);
-                                errorDiv.textContent = '⚠️ COULD NOT RECOGNIZE SPEECH. PLEASE TYPE YOUR PROMPT.';
-                                errorDiv.style.display = 'block';
-                            };
-
-                            recognition.start();
-                            
-                            setTimeout(() => {
-                                try {
-                                    recognition.stop();
-                                } catch(e) {}
-                            }, 8000);
-                        } else {
-                            promptInput.focus();
-                        }
-                    } catch (err) {
-                        console.error('Voice processing error:', err);
+                    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                        const recognition = new SpeechRecognition();
+                        recognition.lang = 'en-US';
+                        recognition.onresult = function(event) {
+                            const transcript = event.results[0][0].transcript;
+                            promptInput.value = transcript.toUpperCase();
+                            autoAdjustHeight();
+                            setTimeout(() => generate(), 300);
+                        };
+                        recognition.start();
                     }
-
                     stream.getTracks().forEach(track => track.stop());
                 };
-
                 mediaRecorder.start();
                 isRecording = true;
                 recordingIndicator.classList.add('active');
                 stopRecordingBtn.classList.add('active');
-
             } catch (err) {
-                console.error('Microphone error:', err);
-                errorDiv.textContent = '⚠️ MICROPHONE ACCESS DENIED. PLEASE ALLOW MICROPHONE PERMISSION.';
+                errorDiv.textContent = '⚠️ MICROPHONE ACCESS DENIED.';
                 errorDiv.style.display = 'block';
             }
         }
 
         function stopVoiceRecording() {
-            if (mediaRecorder && mediaRecorder.state === 'recording') {
-                mediaRecorder.stop();
-            }
+            if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
             isRecording = false;
             recordingIndicator.classList.remove('active');
             stopRecordingBtn.classList.remove('active');
         }
 
-        stopRecordingBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            stopVoiceRecording();
-        });
+        stopRecordingBtn.addEventListener('click', e => { e.stopPropagation(); stopVoiceRecording(); });
 
-        // ============================================================
-        // AUTO-ADJUST TEXTAREA HEIGHT
-        // ============================================================
         function autoAdjustHeight() {
-            this.style.height = 'auto';
-            const newHeight = Math.min(this.scrollHeight, 500);
-            this.style.height = newHeight + 'px';
+            promptInput.style.height = 'auto';
+            promptInput.style.height = Math.min(promptInput.scrollHeight, 500) + 'px';
         }
-
         promptInput.addEventListener('input', autoAdjustHeight);
         promptInput.addEventListener('focus', autoAdjustHeight);
+        promptInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); generate(); } });
 
-        // ============================================================
-        // ENTER KEY TO GENERATE
-        // ============================================================
-        promptInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                generate();
-            }
-        });
-
-        // ============================================================
-        // DISPLAY RESULT
-        // ============================================================
         function displayResult(type, data) {
             const closeBtn = document.createElement('button');
             closeBtn.className = 'close-result';
             closeBtn.innerHTML = '✕';
-            closeBtn.title = 'Dismiss';
             closeBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
-                resultArea.innerHTML = `<div class="placeholder">
-                    <span class="icon">✨</span>
-                    YOUR CREATION WILL APPEAR HERE
-                </div>`;
+                resultArea.innerHTML = `<div class="placeholder"><span class="icon">✨</span>YOUR CREATION WILL APPEAR HERE</div>`;
                 actionBar.style.display = 'none';
                 currentImageUrl = null;
                 currentTextResponse = null;
             });
-
             resultArea.innerHTML = '';
-
             if (type === 'text') {
                 const wrapper = document.createElement('div');
                 wrapper.className = 'text-response';
-                
                 const label = document.createElement('div');
                 label.className = 'response-label';
                 label.textContent = '💬 AI RESPONSE';
                 wrapper.appendChild(label);
-                
                 const content = document.createElement('div');
                 content.innerHTML = data;
                 wrapper.appendChild(content);
-                
                 wrapper.appendChild(closeBtn);
                 resultArea.appendChild(wrapper);
                 currentTextResponse = data;
                 currentType = 'text';
-                
                 actionBar.style.display = 'flex';
                 previewBtn.style.display = 'none';
                 downloadBtn.style.display = 'none';
                 editBtn.style.display = 'none';
                 copyBtn.style.display = 'inline-flex';
-                
             } else {
                 const wrapper = document.createElement('div');
                 wrapper.className = 'result-wrapper';
-                
                 if (type === 'image') {
                     const img = document.createElement('img');
                     img.src = data;
                     img.alt = 'GENERATED IMAGE';
-                    img.onerror = function() {
-                        this.alt = 'IMAGE LOAD FAILED';
-                        this.style.border = '2px solid #ef4444';
-                    };
+                    img.onerror = function() { this.alt = 'IMAGE LOAD FAILED'; this.style.border = '2px solid #ef4444'; };
                     wrapper.appendChild(img);
                 } else {
                     const video = document.createElement('video');
@@ -1319,98 +709,48 @@
                     video.innerHTML = 'YOUR BROWSER DOES NOT SUPPORT VIDEO PLAYBACK.';
                     wrapper.appendChild(video);
                 }
-                
                 wrapper.appendChild(closeBtn);
                 resultArea.appendChild(wrapper);
                 currentImageUrl = data;
                 currentType = type;
                 currentTextResponse = null;
-                
                 actionBar.style.display = 'flex';
                 previewBtn.style.display = 'inline-flex';
                 downloadBtn.style.display = 'inline-flex';
                 editBtn.style.display = 'inline-flex';
                 copyBtn.style.display = 'none';
             }
-            
             errorDiv.style.display = 'none';
         }
 
-        // ============================================================
-        // GENERATE FUNCTION
-        // ============================================================
         async function generate() {
             const prompt = promptInput.value.trim();
-
             errorDiv.style.display = 'none';
             errorDiv.textContent = '';
-
             if (!prompt) {
                 errorDiv.textContent = '⚠️ PLEASE ENTER A PROMPT OR QUESTION';
                 errorDiv.style.display = 'block';
                 return;
             }
-
-            // Show loading state on button
             generateBtn.classList.add('loading');
             resultArea.innerHTML = '<div class="placeholder"><span class="icon">⏳</span>GENERATING...</div>';
             actionBar.style.display = 'none';
-            currentImageUrl = null;
-            currentTextResponse = null;
-
             try {
-                const requestBody = { 
-                    prompt: prompt,
-                    mode: selectedMode
-                };
-
-                if (uploadedImageData) {
-                    requestBody.image = uploadedImageData;
-                    requestBody.fileType = uploadedFileType;
-                }
-
+                const requestBody = { prompt, mode: selectedMode };
+                if (uploadedImageData) { requestBody.image = uploadedImageData; }
                 const response = await fetch('/api/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(requestBody)
                 });
-
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    const text = await response.text();
-                    throw new Error(`SERVER ERROR: ${text.substring(0, 100)}...`);
-                }
-
                 const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || 'SOMETHING WENT WRONG');
-                }
-
-                // Handle text response
+                if (!response.ok) throw new Error(data.error || 'SOMETHING WENT WRONG');
                 if (data.type === 'text') {
-                    displayResult('text', data.text || data.response || data.message || 'No response received.');
-                    return;
+                    displayResult('text', data.text || 'No response received.');
+                } else {
+                    displayResult(data.type, data.url);
                 }
-
-                // Handle image/video response
-                let imageUrl = data.url;
-
-                if (typeof imageUrl === 'string') {
-                    if (imageUrl.startsWith('/9j/')) {
-                        imageUrl = `data:image/jpeg;base64,${imageUrl}`;
-                    } else if (imageUrl.match(/^[A-Za-z0-9+/=]+$/) && imageUrl.length > 100) {
-                        imageUrl = `data:image/jpeg;base64,${imageUrl}`;
-                    }
-                }
-
-                currentImageUrl = imageUrl;
-                currentType = data.type || 'image';
-
-                displayResult(currentType, currentImageUrl);
-
             } catch (err) {
-                console.error('ERROR:', err);
                 errorDiv.textContent = '❌ ' + err.message;
                 errorDiv.style.display = 'block';
                 resultArea.innerHTML = '<div class="placeholder"><span class="icon">❌</span>GENERATION FAILED. PLEASE TRY AGAIN.</div>';
@@ -1422,97 +762,48 @@
 
         generateBtn.addEventListener('click', generate);
 
-        // ============================================================
-        // EDIT BUTTON
-        // ============================================================
         editBtn.addEventListener('click', function() {
             if (currentImageUrl) {
                 uploadedImageData = currentImageUrl;
-                uploadedFileType = currentType;
                 previewImageSrc.src = currentImageUrl;
-                videoIcon.style.display = currentType === 'video' ? 'block' : 'none';
                 imagePreview.classList.add('active');
-                errorDiv.style.display = 'none';
-                
-                resultArea.innerHTML = `<div class="placeholder">
-                    <span class="icon">✏️</span>
-                    IMAGE SENT FOR EDITING
-                </div>`;
+                resultArea.innerHTML = `<div class="placeholder"><span class="icon">✏️</span>IMAGE SENT FOR EDITING</div>`;
                 actionBar.style.display = 'none';
                 promptInput.focus();
             }
         });
 
-        // ============================================================
-        // COPY BUTTON
-        // ============================================================
         copyBtn.addEventListener('click', function() {
             if (currentTextResponse) {
-                const textContent = currentTextResponse.replace(/<[^>]*>/g, '');
-                navigator.clipboard.writeText(textContent).then(() => {
+                const text = currentTextResponse.replace(/<[^>]*>/g, '');
+                navigator.clipboard.writeText(text).then(() => {
                     copyBtn.textContent = '✅ COPIED';
-                    setTimeout(() => {
-                        copyBtn.innerHTML = '📋 COPY';
-                    }, 2000);
-                }).catch(() => {
-                    const textarea = document.createElement('textarea');
-                    textarea.value = textContent;
-                    document.body.appendChild(textarea);
-                    textarea.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(textarea);
-                    copyBtn.textContent = '✅ COPIED';
-                    setTimeout(() => {
-                        copyBtn.innerHTML = '📋 COPY';
-                    }, 2000);
+                    setTimeout(() => copyBtn.innerHTML = '📋 COPY', 2000);
                 });
             }
         });
 
-        // ============================================================
-        // PREVIEW
-        // ============================================================
         previewBtn.addEventListener('click', function() {
             if (currentImageUrl) {
                 previewImageModal.src = currentImageUrl;
                 previewModal.classList.add('active');
             }
         });
+        closeModal.addEventListener('click', () => previewModal.classList.remove('active'));
+        previewModal.addEventListener('click', e => { if (e.target === this) previewModal.classList.remove('active'); });
 
-        closeModal.addEventListener('click', function() {
-            previewModal.classList.remove('active');
-        });
-
-        previewModal.addEventListener('click', function(e) {
-            if (e.target === this) {
-                previewModal.classList.remove('active');
-            }
-        });
-
-        // ============================================================
-        // DOWNLOAD
-        // ============================================================
         downloadBtn.addEventListener('click', function() {
             if (currentImageUrl) {
                 const link = document.createElement('a');
                 link.href = currentImageUrl;
-                const extension = currentType === 'image' ? 'jpg' : 'mp4';
-                link.download = `FIXORIUM_${Date.now()}.${extension}`;
+                link.download = `FIXORIUM_${Date.now()}.${currentType === 'image' ? 'jpg' : 'mp4'}`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
             }
         });
 
-        // ============================================================
-        // KEYBOARD SHORTCUT: CTRL+ENTER
-        // ============================================================
-        document.addEventListener('keydown', function(e) {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                e.preventDefault();
-                generate();
-            }
-        });
+        document.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); generate(); } });
     </script>
 </body>
 </html>
