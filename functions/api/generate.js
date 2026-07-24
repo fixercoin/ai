@@ -1,5 +1,5 @@
 // functions/api/generate.js
-// Updated to support SINGLE IMAGE / MULTI IMAGE modes
+// Updated to support IMAGE, VIDEO, and VOICE modes
 
 export async function onRequest(context) {
     const { request, env } = context;
@@ -18,7 +18,7 @@ export async function onRequest(context) {
                 });
             }
 
-            const { prompt, mode, imageMode } = await request.json();
+            const { prompt, mode } = await request.json();
 
             if (!prompt || prompt.trim().length === 0) {
                 return new Response(JSON.stringify({ error: 'Prompt is required' }), {
@@ -27,27 +27,39 @@ export async function onRequest(context) {
                 });
             }
 
-            // Log the request parameters
-            console.log('Generating with:', { prompt, mode, imageMode });
+            // Log the request
+            console.log('Generating with:', { prompt, mode });
+
+            // ============================================================
+            // HANDLE DIFFERENT MODES
+            // ============================================================
+            
+            // Default to image generation
+            let responseData = {
+                type: 'image',
+                url: null
+            };
+
+            // If mode is 'voice', we just use the transcribed text (already in prompt)
+            // The voice transcription happens on the frontend, so we just generate image/video
+            // based on the transcribed prompt
 
             // ============================================================
             // GENERATE IMAGE using Cloudflare Workers AI
             // ============================================================
             const model = '@cf/black-forest-labs/flux-1-schnell';
             
-            // Adjust generation parameters based on mode
             let genParams = {
                 prompt: prompt,
                 width: 1024,
                 height: 1024
             };
 
-            // For multi-image mode, we can adjust slightly
-            if (imageMode === 'multi') {
-                // Multi-image mode - we'll generate a single image but 
-                // the frontend will handle the multi selection
-                // You could also call the AI multiple times here if needed
-                genParams.prompt = prompt + ", high quality, detailed";
+            // For video mode, we still generate an image first
+            // (Cloudflare Workers AI doesn't directly generate videos yet)
+            // The frontend will display it as video type
+            if (mode === 'video') {
+                genParams.prompt = prompt + ", cinematic, high quality, 4k";
             }
 
             const aiResponse = await env.AI.run(model, genParams);
@@ -80,7 +92,9 @@ export async function onRequest(context) {
                         } else if (parsed.data) {
                             imageUrl = `data:image/jpeg;base64,${parsed.data}`;
                         }
-                    } catch (e) {}
+                    } catch (e) {
+                        console.log('Could not parse response as JSON');
+                    }
                 }
             } 
             // If response is an object
@@ -152,7 +166,9 @@ export async function onRequest(context) {
                         const base64 = btoa(binary);
                         imageUrl = `data:image/jpeg;base64,${base64}`;
                     }
-                } catch (e) {}
+                } catch (e) {
+                    console.error('Bytes conversion error:', e);
+                }
             }
 
             // ============================================================
@@ -176,49 +192,15 @@ export async function onRequest(context) {
             }
 
             // ============================================================
-            // HANDLE MULTI-IMAGE MODE
+            // SET RESPONSE TYPE BASED ON MODE
             // ============================================================
-            let responseData = {
-                type: mode === 'video' ? 'video' : 'image',
-                url: imageUrl,
-                imageMode: imageMode || 'single'
-            };
-
-            // For multi-image mode, we could generate additional variations
-            // This is a simple implementation - you can expand this
-            if (imageMode === 'multi') {
-                // Generate a second variation with slightly different prompt
-                try {
-                    const secondPrompt = prompt + ", different style, variation";
-                    const secondResponse = await env.AI.run(model, {
-                        prompt: secondPrompt,
-                        width: 1024,
-                        height: 1024
-                    });
-                    
-                    let secondUrl = null;
-                    // Extract second image URL (simplified extraction)
-                    if (typeof secondResponse === 'string' && secondResponse.startsWith('/9j/')) {
-                        secondUrl = `data:image/jpeg;base64,${secondResponse}`;
-                    } else if (typeof secondResponse === 'string' && secondResponse.startsWith('data:image')) {
-                        secondUrl = secondResponse;
-                    } else if (typeof secondResponse === 'object' && secondResponse && secondResponse.image) {
-                        let imgData = secondResponse.image;
-                        if (typeof imgData === 'string' && !imgData.startsWith('data:image')) {
-                            imgData = `data:image/jpeg;base64,${imgData}`;
-                        }
-                        secondUrl = imgData;
-                    }
-                    
-                    if (secondUrl) {
-                        responseData.multiImages = [imageUrl, secondUrl];
-                        responseData.url = imageUrl; // Keep primary
-                    }
-                } catch (e) {
-                    console.log('Multi-image variation failed:', e.message);
-                    // Continue with single image
-                }
+            if (mode === 'video') {
+                responseData.type = 'video';
+            } else {
+                responseData.type = 'image';
             }
+            
+            responseData.url = imageUrl;
 
             // ============================================================
             // RETURN RESPONSE
