@@ -1,5 +1,5 @@
 // functions/api/generate.js
-// Fixed image display with proper data handling
+// FIXED: Proper image URL handling
 
 export async function onRequest(context) {
     const { request, env } = context;
@@ -138,63 +138,109 @@ export async function onRequest(context) {
                 height: 1024
             });
 
-            console.log('AI response received. Type:', typeof aiResponse);
-            console.log('AI response keys:', aiResponse ? Object.keys(aiResponse) : 'null');
-
+            console.log('AI response type:', typeof aiResponse);
+            
             // ============================================================
-            // FIX: Properly handle different response formats
+            // FIX: Properly handle AI response and ensure data URL format
             // ============================================================
             let imageUrl = null;
-            let imageBytes = null;
 
-            // Check if response is already a base64 image
+            // If response is a string
             if (typeof aiResponse === 'string') {
+                // If it's already a complete data URL
                 if (aiResponse.startsWith('data:image')) {
-                    // Direct data URL
                     imageUrl = aiResponse;
-                    console.log('Received direct data URL');
-                } else if (aiResponse.startsWith('/9j/') || aiResponse.match(/^[A-Za-z0-9+/=]+$/)) {
-                    // Raw base64 without prefix
+                    console.log('Complete data URL received');
+                }
+                // If it's raw base64 (starts with /9j/ for JPEG)
+                else if (aiResponse.startsWith('/9j/') || aiResponse.match(/^[A-Za-z0-9+/=]+$/)) {
+                    // Add the data URL prefix
                     imageUrl = `data:image/jpeg;base64,${aiResponse}`;
-                    console.log('Received raw base64');
-                } else {
-                    // Try to parse as JSON
+                    console.log('Raw base64 converted to data URL');
+                }
+                // If it's a URL path
+                else if (aiResponse.startsWith('http://') || aiResponse.startsWith('https://')) {
+                    imageUrl = aiResponse;
+                    console.log('HTTP URL received');
+                }
+                // Try to parse as JSON
+                else {
                     try {
                         const parsed = JSON.parse(aiResponse);
+                        console.log('Parsed JSON:', Object.keys(parsed));
                         if (parsed.image) {
-                            imageUrl = parsed.image;
+                            let imgData = parsed.image;
+                            if (!imgData.startsWith('data:image') && !imgData.startsWith('http')) {
+                                imgData = `data:image/jpeg;base64,${imgData}`;
+                            }
+                            imageUrl = imgData;
                         } else if (parsed.url) {
                             imageUrl = parsed.url;
                         } else if (parsed.data) {
                             imageUrl = `data:image/jpeg;base64,${parsed.data}`;
+                        } else if (parsed.output) {
+                            if (Array.isArray(parsed.output) && parsed.output.length > 0) {
+                                let out = parsed.output[0];
+                                if (!out.startsWith('data:image') && !out.startsWith('http')) {
+                                    out = `data:image/jpeg;base64,${out}`;
+                                }
+                                imageUrl = out;
+                            } else if (typeof parsed.output === 'string') {
+                                let out = parsed.output;
+                                if (!out.startsWith('data:image') && !out.startsWith('http')) {
+                                    out = `data:image/jpeg;base64,${out}`;
+                                }
+                                imageUrl = out;
+                            }
                         }
                     } catch (e) {
-                        console.log('Could not parse as JSON, using as-is');
+                        console.log('Not valid JSON, using as string');
                     }
                 }
             } 
-            // Check if response is an object
+            // If response is an object
             else if (typeof aiResponse === 'object' && aiResponse !== null) {
+                console.log('Response is object, keys:', Object.keys(aiResponse));
+                
+                // Check common response formats
                 if (aiResponse.image) {
-                    imageUrl = aiResponse.image;
+                    let imgData = aiResponse.image;
+                    if (typeof imgData === 'string' && !imgData.startsWith('data:image') && !imgData.startsWith('http')) {
+                        imgData = `data:image/jpeg;base64,${imgData}`;
+                    }
+                    imageUrl = imgData;
                 } else if (aiResponse.url) {
                     imageUrl = aiResponse.url;
                 } else if (aiResponse.data) {
                     imageUrl = `data:image/jpeg;base64,${aiResponse.data}`;
                 } else if (aiResponse.output) {
                     if (Array.isArray(aiResponse.output) && aiResponse.output.length > 0) {
-                        imageUrl = aiResponse.output[0];
+                        let out = aiResponse.output[0];
+                        if (typeof out === 'string' && !out.startsWith('data:image') && !out.startsWith('http')) {
+                            out = `data:image/jpeg;base64,${out}`;
+                        }
+                        imageUrl = out;
                     } else if (typeof aiResponse.output === 'string') {
-                        imageUrl = aiResponse.output;
+                        let out = aiResponse.output;
+                        if (!out.startsWith('data:image') && !out.startsWith('http')) {
+                            out = `data:image/jpeg;base64,${out}`;
+                        }
+                        imageUrl = out;
                     }
-                }
-                // Check for results array (common in some AI responses)
-                if (!imageUrl && aiResponse.results && Array.isArray(aiResponse.results)) {
+                } else if (aiResponse.results && Array.isArray(aiResponse.results) && aiResponse.results.length > 0) {
                     const result = aiResponse.results[0];
                     if (result) {
-                        if (result.image) imageUrl = result.image;
-                        else if (result.url) imageUrl = result.url;
-                        else if (result.data) imageUrl = `data:image/jpeg;base64,${result.data}`;
+                        if (result.image) {
+                            let imgData = result.image;
+                            if (typeof imgData === 'string' && !imgData.startsWith('data:image') && !imgData.startsWith('http')) {
+                                imgData = `data:image/jpeg;base64,${imgData}`;
+                            }
+                            imageUrl = imgData;
+                        } else if (result.url) {
+                            imageUrl = result.url;
+                        } else if (result.data) {
+                            imageUrl = `data:image/jpeg;base64,${result.data}`;
+                        }
                     }
                 }
             }
@@ -208,13 +254,10 @@ export async function onRequest(context) {
                         arrayBuffer = await new Response(aiResponse).arrayBuffer();
                     } else if (aiResponse instanceof ArrayBuffer) {
                         arrayBuffer = aiResponse;
-                    } else if (typeof aiResponse === 'object' && aiResponse !== null) {
-                        // Try to get bytes from object
-                        if (aiResponse.bytes) {
-                            arrayBuffer = aiResponse.bytes;
-                        } else if (aiResponse.buffer) {
-                            arrayBuffer = aiResponse.buffer;
-                        }
+                    } else if (aiResponse && typeof aiResponse === 'object' && aiResponse.bytes) {
+                        arrayBuffer = aiResponse.bytes;
+                    } else if (aiResponse && typeof aiResponse === 'object' && aiResponse.buffer) {
+                        arrayBuffer = aiResponse.buffer;
                     }
 
                     if (arrayBuffer) {
@@ -225,24 +268,33 @@ export async function onRequest(context) {
                         }
                         const base64 = btoa(binary);
                         imageUrl = `data:image/jpeg;base64,${base64}`;
-                        console.log('Created image URL from bytes, length:', binary.length);
+                        console.log('Created image URL from bytes');
                     }
                 } catch (e) {
                     console.error('Error converting bytes:', e);
                 }
             }
 
-            // If we still don't have an image, use a fallback
+            // If we still don't have an image, return error
             if (!imageUrl) {
-                console.error('Could not extract image from response:', JSON.stringify(aiResponse).substring(0, 500));
+                console.error('Could not extract image from response');
                 return new Response(JSON.stringify({
                     error: 'Could not generate image. Please try again.',
-                    responseType: typeof aiResponse,
-                    responsePreview: JSON.stringify(aiResponse).substring(0, 200)
+                    responseType: typeof aiResponse
                 }), {
                     status: 500,
                     headers: { 'Content-Type': 'application/json' }
                 });
+            }
+
+            // Ensure the URL starts correctly
+            if (typeof imageUrl === 'string' && !imageUrl.startsWith('data:image') && !imageUrl.startsWith('http')) {
+                // If it starts with /9j/ but doesn't have the prefix
+                if (imageUrl.startsWith('/9j/')) {
+                    imageUrl = `data:image/jpeg;base64,${imageUrl}`;
+                } else {
+                    imageUrl = `data:image/jpeg;base64,${imageUrl}`;
+                }
             }
 
             // Generate unique ID
