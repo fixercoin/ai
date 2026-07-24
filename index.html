@@ -3,438 +3,879 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Image & Video Generator</title>
+    <title>FIXORIUM AI - FREE IMAGE & VIDEO GENERATOR</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: system-ui, -apple-system, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             min-height: 100vh;
-            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 100%);
+            background: #ffffff;
             display: flex;
             justify-content: center;
-            align-items: center;
-            padding: 1rem;
+            align-items: flex-start;
+            padding: 2rem 1rem;
         }
+
         .container {
-            background: rgba(26, 26, 46, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 1.5rem;
-            padding: 2.5rem;
-            max-width: 800px;
+            max-width: 900px;
             width: 100%;
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.7);
         }
-        h1 {
-            color: #fff;
-            font-size: 2rem;
-            background: linear-gradient(135deg, #818cf8, #6366f1);
+
+        /* HEADER - LOGO LEFT, TEXT RIGHT */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0 1.5rem 0;
+            border-bottom: 1px solid #f3f4f6;
+            margin-bottom: 1.5rem;
+            flex-wrap: nowrap;
+            gap: 0.5rem;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .header-left .logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .header-left .brand-name {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            white-space: nowrap;
         }
-        .subtitle { color: #94a3b8; margin-bottom: 1.5rem; font-size: 0.95rem; }
-        .tabs {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
-            background: #12121f;
-            padding: 0.25rem;
-            border-radius: 0.75rem;
-        }
-        .tab {
-            flex: 1;
-            padding: 0.6rem;
+
+        .header-right {
+            font-size: clamp(0.55rem, 1.2vw, 0.75rem);
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: #f3f4f6;
+            padding: 0.4rem 1rem;
+            border-radius: 2rem;
+            white-space: nowrap;
+            flex-shrink: 0;
             text-align: center;
-            border: none;
+            min-width: fit-content;
+        }
+
+        /* INPUT AREA - NO CARD */
+        .input-area {
             background: transparent;
-            color: #94a3b8;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
         }
-        .tab.active {
-            background: #6366f1;
-            color: #fff;
+
+        /* TOP ROW: TEXT FIELD + GENERATE BUTTON */
+        .input-top {
+            display: flex;
+            align-items: stretch;
+            gap: 0.5rem;
+            background: transparent;
+            padding: 0;
         }
-        .tab:hover:not(.active) { color: #e2e8f0; }
-        textarea {
-            width: 100%;
-            padding: 1rem;
-            border-radius: 0.75rem;
-            border: 1px solid #2d2d44;
-            background: #12121f;
-            color: #f1f5f9;
+
+        /* TEXT FIELD - INCREASED HEIGHT 3x */
+        .input-top .text-field {
+            flex: 1;
+            padding: 1.5rem 1rem;
             font-size: 1rem;
-            resize: vertical;
-            min-height: 100px;
             font-family: inherit;
+            min-height: 160px;
+            max-height: 400px;
+            background: transparent;
+            color: #1f2937;
+            line-height: 1.8;
+            text-transform: uppercase;
+            overflow-y: auto;
+            border: 2px dashed #d1d5db;
+            border-radius: 0.375rem;
+            outline: none;
+            transition: all 0.2s;
+            resize: none;
         }
-        textarea:focus { outline: none; border-color: #6366f1; }
-        .hint { color: #64748b; font-size: 0.85rem; margin: 0.5rem 0 1rem; }
-        button {
-            background: #6366f1;
-            color: #fff;
+
+        .input-top .text-field::placeholder {
+            color: #9ca3af;
+            text-transform: none;
+        }
+
+        .input-top .text-field:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+
+        .input-top .text-field:focus {
+            text-transform: uppercase;
+        }
+
+        .input-top .generate-btn {
+            padding: 0.6rem 1.8rem;
             border: none;
-            padding: 0.85rem 2rem;
-            border-radius: 0.75rem;
-            font-size: 1rem;
+            border-radius: 0.375rem;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.2s;
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            height: 56px;
+            align-self: center;
+        }
+
+        .input-top .generate-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+        }
+
+        .input-top .generate-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* BOTTOM ROW: REARRANGED BUTTONS */
+        .input-bottom {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        /* ALL BUTTONS - SAME DESIGN */
+        .input-bottom .add-btn,
+        .input-bottom .mode-select,
+        .input-bottom .image-mode-select {
+            padding: 0.4rem 1rem;
+            border-radius: 0.375rem;
+            border: 2px dashed #d1d5db;
+            background: transparent;
+            color: #6b7280;
+            font-size: 0.75rem;
             font-weight: 600;
             cursor: pointer;
-            width: 100%;
-            transition: all 0.3s ease;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            height: 40px;
+            line-height: 1;
+            box-sizing: border-box;
         }
-        button:hover:not(:disabled) {
-            background: #4f46e5;
-            transform: translateY(-1px);
+
+        .input-bottom .add-btn:hover,
+        .input-bottom .mode-select:hover,
+        .input-bottom .image-mode-select:hover {
+            border-color: #6366f1;
+            color: #6366f1;
+            background: #f5f3ff;
         }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .input-bottom .add-btn .plus-icon {
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+
+        /* DROPDOWNS - NO CHEVRON */
+        .input-bottom .mode-select,
+        .input-bottom .image-mode-select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: none;
+            padding-right: 1rem;
+            min-width: 90px;
+            display: inline-flex;
+        }
+
+        .input-bottom .mode-select:focus,
+        .input-bottom .image-mode-select:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+            outline: none;
+        }
+
+        .input-bottom .file-name {
+            font-size: 0.65rem;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-left: 0.25rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 150px;
+        }
+
+        /* LOADER */
         .loader {
             display: none;
             margin: 2rem auto;
-            width: 48px;
-            height: 48px;
-            border: 3px solid #2d2d44;
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e5e7eb;
             border-top: 3px solid #6366f1;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        .result {
+
+        /* RESULT AREA */
+        .result-area {
             margin-top: 2rem;
-            text-align: center;
-            min-height: 200px;
+            min-height: 300px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-        }
-        .result img, .result video {
-            max-width: 100%;
-            max-height: 450px;
-            border-radius: 0.75rem;
-            border: 1px solid #2d2d44;
-            background: #0a0a1a;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-        }
-        .result .placeholder { color: #475569; font-size: 0.95rem; }
-        .error {
-            color: #f87171;
-            margin-top: 1rem;
-            padding: 0.75rem;
-            background: rgba(248,113,113,0.1);
-            border-radius: 0.5rem;
-            border: 1px solid rgba(248,113,113,0.2);
-            display: none;
-            word-break: break-word;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        .badge {
-            display: inline-block;
-            background: rgba(99,102,241,0.15);
-            color: #818cf8;
-            padding: 0.2rem 0.75rem;
-            border-radius: 1rem;
-            font-size: 0.75rem;
-            margin-top: 0.5rem;
-        }
-        .history {
-            margin-top: 2rem;
-            border-top: 1px solid #2d2d44;
-            padding-top: 1rem;
-        }
-        .history h3 { color: #94a3b8; font-size: 0.9rem; margin-bottom: 0.5rem; }
-        .history-item {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 0.5rem;
-            background: #12121f;
-            border-radius: 0.5rem;
-            margin-bottom: 0.5rem;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .history-item:hover { background: #1a1a2e; }
-        .history-item img {
-            width: 50px;
-            height: 50px;
-            object-fit: cover;
-            border-radius: 0.25rem;
-            background: #0a0a1a;
-        }
-        .history-item .info {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        .history-item .prompt-text {
-            color: #e2e8f0;
-            font-size: 0.85rem;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            max-width: 300px;
-        }
-        .history-item .date {
-            color: #64748b;
-            font-size: 0.75rem;
-        }
-        .history-item .type-badge {
-            font-size: 0.7rem;
-            padding: 0.15rem 0.5rem;
-            border-radius: 1rem;
-            background: rgba(99,102,241,0.2);
-            color: #818cf8;
-        }
-        .no-history {
-            color: #475569;
-            text-align: center;
-            padding: 1rem;
-        }
-        .image-container {
+            background: #fafafa;
+            border-radius: 0.375rem;
+            border: 2px dashed #e5e7eb;
+            padding: 2rem;
             position: relative;
-            display: inline-block;
-            max-width: 100%;
         }
-        .image-container img {
+
+        .result-area .placeholder {
+            color: #9ca3af;
+            font-size: 1rem;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .result-area .placeholder .icon {
+            font-size: 3rem;
             display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-area img,
+        .result-area video {
             max-width: 100%;
+            max-height: 500px;
+            border-radius: 0.375rem;
+            background: #f3f4f6;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        /* ACTION BAR */
+        .action-bar {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .action-bar .action-btn {
+            padding: 0.4rem 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+            background: #ffffff;
+            color: #4b5563;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            height: 36px;
+        }
+
+        .action-bar .action-btn:hover {
+            border-color: #6366f1;
+            color: #6366f1;
+            background: #f5f3ff;
+        }
+
+        .action-bar .action-btn.primary {
+            background: #6366f1;
+            color: #fff;
+            border-color: #6366f1;
+        }
+
+        .action-bar .action-btn.primary:hover {
+            background: #4f46e5;
+            border-color: #4f46e5;
+        }
+
+        /* ERROR */
+        .error {
+            color: #ef4444;
+            margin-top: 1rem;
+            padding: 0.75rem 1rem;
+            background: #fef2f2;
+            border-radius: 0.375rem;
+            border: 1px solid #fecaca;
+            display: none;
+            width: 100%;
+            text-align: center;
+            text-transform: uppercase;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        /* MODAL */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
+        }
+
+        .modal-content img {
+            max-width: 100%;
+            max-height: 85vh;
+            border-radius: 0.375rem;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: -2.5rem;
+            right: 0;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 2rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .modal-close:hover {
+            opacity: 1;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .header {
+                flex-wrap: nowrap;
+                gap: 0.4rem;
+            }
+
+            .header-left .brand-name {
+                font-size: 1.1rem;
+            }
+
+            .header-left .logo {
+                width: 32px;
+                height: 32px;
+            }
+
+            .header-right {
+                font-size: 0.55rem;
+                padding: 0.3rem 0.6rem;
+                letter-spacing: 0.3px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 1rem 0.75rem;
+            }
+
+            .header {
+                padding: 0.25rem 0 1rem 0;
+                gap: 0.3rem;
+            }
+
+            .header-left {
+                gap: 0.4rem;
+            }
+
+            .header-left .brand-name {
+                font-size: 0.9rem;
+                letter-spacing: 0.5px;
+            }
+
+            .header-left .logo {
+                width: 28px;
+                height: 28px;
+            }
+
+            .header-right {
+                font-size: 0.45rem;
+                padding: 0.25rem 0.5rem;
+                letter-spacing: 0.2px;
+                border-radius: 1.5rem;
+            }
+
+            .input-top {
+                flex-wrap: wrap;
+            }
+
+            .input-top .text-field {
+                min-height: 120px;
+                width: 100%;
+                font-size: 0.85rem;
+                padding: 1rem 0.8rem;
+            }
+
+            .input-top .generate-btn {
+                width: 100%;
+                padding: 0.6rem;
+                text-align: center;
+                font-size: 0.8rem;
+                border-radius: 0.375rem;
+                height: 44px;
+                align-self: stretch;
+            }
+
+            .input-bottom {
+                flex-wrap: wrap;
+                gap: 0.4rem;
+            }
+
+            .input-bottom .add-btn {
+                font-size: 0.65rem;
+                padding: 0.35rem 0.7rem;
+                border-radius: 0.375rem;
+                height: 36px;
+            }
+
+            .input-bottom .mode-select,
+            .input-bottom .image-mode-select {
+                flex: 1;
+                min-width: 70px;
+                font-size: 0.65rem;
+                padding: 0.35rem 0.7rem;
+                border-radius: 0.375rem;
+                height: 36px;
+            }
+
+            .input-bottom .file-name {
+                max-width: 80px;
+                font-size: 0.55rem;
+            }
+
+            .action-bar .action-btn {
+                padding: 0.35rem 0.7rem;
+                font-size: 0.65rem;
+                border-radius: 0.375rem;
+                height: 32px;
+            }
+
+            .result-area {
+                min-height: 200px;
+                padding: 1rem;
+                border-radius: 0.375rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-left .brand-name {
+                font-size: 0.75rem;
+                letter-spacing: 0.3px;
+            }
+
+            .header-left .logo {
+                width: 24px;
+                height: 24px;
+            }
+
+            .header-right {
+                font-size: 0.4rem;
+                padding: 0.2rem 0.4rem;
+                letter-spacing: 0.1px;
+            }
+
+            .input-bottom .add-btn {
+                font-size: 0.55rem;
+                padding: 0.3rem 0.5rem;
+                border-radius: 0.375rem;
+                height: 32px;
+            }
+
+            .input-bottom .add-btn .plus-icon {
+                font-size: 0.9rem;
+            }
+
+            .input-bottom .mode-select,
+            .input-bottom .image-mode-select {
+                font-size: 0.55rem;
+                padding: 0.3rem 0.5rem;
+                min-width: 60px;
+                border-radius: 0.375rem;
+                height: 32px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .header {
+                gap: 0.2rem;
+                padding: 0.15rem 0 0.75rem 0;
+            }
+
+            .header-left .brand-name {
+                font-size: 0.65rem;
+            }
+
+            .header-left .logo {
+                width: 20px;
+                height: 20px;
+            }
+
+            .header-right {
+                font-size: 0.35rem;
+                padding: 0.15rem 0.35rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>⚡ AI Creator</h1>
-        <p class="subtitle">Generate images & videos from text — free, no watermark</p>
-
-        <div class="tabs">
-            <button class="tab active" data-mode="image" onclick="setMode('image')">🖼️ Image</button>
-            <button class="tab" data-mode="video" onclick="setMode('video')">🎬 Video (1 min)</button>
+        <!-- HEADER: LOGO LEFT, TEXT RIGHT -->
+        <div class="header">
+            <div class="header-left">
+                <img class="logo" src="https://i.postimg.cc/Nj54ywH5/circle.png" alt="FIXORIUM AI" />
+                <span class="brand-name">FIXORIUM AI</span>
+            </div>
+            <div class="header-right">AI CLOUD FREE SERVICE</div>
         </div>
 
-        <textarea id="prompt" placeholder="Describe what you want to create...">A futuristic city with neon lights and flying cars</textarea>
-        <p class="hint" id="hintText">💡 Be detailed for better results</p>
+        <!-- INPUT AREA - NO CARD -->
+        <div class="input-area">
+            <!-- TOP ROW: TEXT FIELD + GENERATE BUTTON -->
+            <div class="input-top">
+                <textarea class="text-field" id="promptInput" placeholder="DESCRIBE WHAT YOU WANT TO CREATE..." rows="1"></textarea>
+                <button class="generate-btn" id="generateBtn">GENERATE</button>
+            </div>
 
-        <button id="generateBtn" onclick="generate()">🚀 Generate</button>
+            <!-- BOTTOM ROW: REARRANGED BUTTONS -->
+            <div class="input-bottom">
+                <!-- 1. GENERATE FROM IMAGE -->
+                <button class="add-btn" id="addImageBtn">
+                    <span class="plus-icon">+</span> GENERATE FROM IMAGE
+                </button>
+                <!-- 2. SINGLE IMAGE / MULTI IMAGE -->
+                <select class="image-mode-select" id="imageModeSelect">
+                    <option value="single">SINGLE IMAGE</option>
+                    <option value="multi">MULTI IMAGE</option>
+                </select>
+                <!-- 3. IMAGE / VIDEO -->
+                <select class="mode-select" id="modeSelect">
+                    <option value="image">IMAGE</option>
+                    <option value="video">VIDEO</option>
+                </select>
+                <span class="file-name" id="fileName"></span>
+            </div>
+        </div>
+
+        <!-- LOADER -->
         <div class="loader" id="loader"></div>
-        <div class="result" id="result">
-            <span class="placeholder">✨ Your creation will appear here</span>
-        </div>
+
+        <!-- ERROR -->
         <div class="error" id="error"></div>
 
-        <div class="history" id="historySection" style="display:none;">
-            <h3>📜 History (Stored in KV)</h3>
-            <div id="historyList"></div>
+        <!-- RESULT AREA -->
+        <div class="result-area" id="resultArea">
+            <div class="placeholder">
+                <span class="icon">✨</span>
+                YOUR CREATION WILL APPEAR HERE
+            </div>
+        </div>
+
+        <!-- ACTION BAR -->
+        <div class="action-bar" id="actionBar" style="display:none;">
+            <button class="action-btn" id="previewBtn">👁️ PREVIEW</button>
+            <button class="action-btn primary" id="downloadBtn">⬇️ DOWNLOAD</button>
+            <button class="action-btn" id="editBtn">✏️ EDIT</button>
+        </div>
+
+        <!-- PREVIEW MODAL -->
+        <div class="modal-overlay" id="previewModal">
+            <div class="modal-content">
+                <button class="modal-close" id="closeModal">✕</button>
+                <img id="previewImage" src="" alt="PREVIEW" />
+            </div>
         </div>
     </div>
 
     <script>
-        let currentMode = 'image';
+        let currentImageUrl = null;
+        let currentType = 'image';
 
-        function setMode(mode) {
-            currentMode = mode;
-            document.querySelectorAll('.tab').forEach(t => {
-                t.classList.toggle('active', t.dataset.mode === mode);
-            });
-            document.getElementById('hintText').textContent = mode === 'image' ?
-                '💡 Be detailed for better images. Example: "A cyberpunk city at night, neon lights, rain"' :
-                '🎬 Describe a scene for video. Example: "A cat drinking tea in a cozy kitchen, cinematic"';
+        // DOM ELEMENTS
+        const promptInput = document.getElementById('promptInput');
+        const modeSelect = document.getElementById('modeSelect');
+        const imageModeSelect = document.getElementById('imageModeSelect');
+        const generateBtn = document.getElementById('generateBtn');
+        const loader = document.getElementById('loader');
+        const resultArea = document.getElementById('resultArea');
+        const errorDiv = document.getElementById('error');
+        const actionBar = document.getElementById('actionBar');
+        const previewBtn = document.getElementById('previewBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const editBtn = document.getElementById('editBtn');
+        const previewModal = document.getElementById('previewModal');
+        const previewImage = document.getElementById('previewImage');
+        const closeModal = document.getElementById('closeModal');
+        const addImageBtn = document.getElementById('addImageBtn');
+        const fileName = document.getElementById('fileName');
+
+        // AUTO-ADJUST TEXTAREA HEIGHT
+        function autoAdjustHeight() {
+            this.style.height = 'auto';
+            const newHeight = Math.min(this.scrollHeight, 400);
+            this.style.height = newHeight + 'px';
         }
 
+        promptInput.addEventListener('input', autoAdjustHeight);
+        promptInput.addEventListener('focus', autoAdjustHeight);
+
+        // ENTER KEY TO GENERATE (SHIFT+ENTER FOR NEW LINE)
+        promptInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                generate();
+            }
+        });
+
+        // ADD IMAGE BUTTON - OPENS FILE PICKER
+        addImageBtn.addEventListener('click', function() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.multiple = (imageModeSelect.value === 'multi');
+            input.onchange = function(e) {
+                const files = e.target.files;
+                if (files && files.length > 0) {
+                    const file = files[0];
+                    fileName.textContent = file.name.toUpperCase();
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        const img = new Image();
+                        img.onload = function() {
+                            currentImageUrl = ev.target.result;
+                            currentType = 'image';
+                            resultArea.innerHTML = `
+                                <img src="${currentImageUrl}" alt="UPLOADED IMAGE" />
+                                ${files.length > 1 ? `<p style="color:#6b7280;font-size:0.75rem;margin-top:0.5rem;text-transform:uppercase;">+ ${files.length - 1} MORE IMAGES</p>` : ''}
+                            `;
+                            actionBar.style.display = 'flex';
+                            errorDiv.style.display = 'none';
+                        };
+                        img.src = ev.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            input.click();
+        });
+
+        // UPDATE FILE INPUT MULTIPLE ATTRIBUTE WHEN DROPDOWN CHANGES
+        imageModeSelect.addEventListener('change', function() {
+            // Just update the behavior for next file selection
+            const isMulti = this.value === 'multi';
+            addImageBtn.dataset.multi = isMulti ? 'true' : 'false';
+        });
+
+        // GENERATE FUNCTION
         async function generate() {
-            const prompt = document.getElementById('prompt').value.trim();
-            const errorDiv = document.getElementById('error');
-            const resultDiv = document.getElementById('result');
-            const btn = document.getElementById('generateBtn');
-            const loader = document.getElementById('loader');
+            const prompt = promptInput.value.trim();
+            const mode = modeSelect.value;
+            const imageMode = imageModeSelect.value;
 
             errorDiv.style.display = 'none';
             errorDiv.textContent = '';
 
             if (!prompt) {
-                errorDiv.textContent = '⚠️ Please enter a prompt';
+                errorDiv.textContent = '⚠️ PLEASE ENTER A PROMPT';
                 errorDiv.style.display = 'block';
                 return;
             }
 
-            btn.disabled = true;
+            generateBtn.disabled = true;
             loader.style.display = 'block';
-            resultDiv.innerHTML = '<span class="placeholder">⏳ Generating... please wait up to 30 seconds</span>';
+            resultArea.innerHTML = '<div class="placeholder"><span class="icon">⏳</span>GENERATING...</div>';
+            actionBar.style.display = 'none';
+            currentImageUrl = null;
+            fileName.textContent = '';
 
             try {
                 const response = await fetch('/api/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt, mode: currentMode })
+                    body: JSON.stringify({ 
+                        prompt, 
+                        mode,
+                        imageMode: imageMode
+                    })
                 });
 
                 const contentType = response.headers.get('content-type');
                 if (!contentType || !contentType.includes('application/json')) {
                     const text = await response.text();
-                    throw new Error(`Server returned ${response.status}: ${text.substring(0, 100)}...`);
+                    throw new Error(`SERVER ERROR: ${text.substring(0, 100)}...`);
                 }
 
                 const data = await response.json();
 
                 if (!response.ok) {
-                    throw new Error(data.error || 'Something went wrong');
+                    throw new Error(data.error || 'SOMETHING WENT WRONG');
                 }
 
-                console.log('Response data:', data);
-                console.log('Image URL type:', typeof data.url);
-                console.log('Image URL starts with:', data.url ? data.url.substring(0, 50) : 'null');
-
-                // Ensure the URL is valid
                 let imageUrl = data.url;
-                
-                // Fix the URL if it's missing the data URL prefix
+
+                // FIX URL IF NEEDED
                 if (typeof imageUrl === 'string') {
-                    // If it starts with /9j/ (raw base64 JPEG)
                     if (imageUrl.startsWith('/9j/')) {
                         imageUrl = `data:image/jpeg;base64,${imageUrl}`;
-                        console.log('Fixed missing data URL prefix');
-                    }
-                    // If it's just a raw base64 string without prefix
-                    else if (imageUrl.match(/^[A-Za-z0-9+/=]+$/) && imageUrl.length > 100) {
+                    } else if (imageUrl.match(/^[A-Za-z0-9+/=]+$/) && imageUrl.length > 100) {
                         imageUrl = `data:image/jpeg;base64,${imageUrl}`;
-                        console.log('Added data URL prefix to raw base64');
                     }
                 }
 
-                // Display the result
-                if (data.type === 'image' && imageUrl) {
-                    resultDiv.innerHTML = `
-                        <div class="image-container">
-                            <img src="${imageUrl}" alt="Generated image" 
-                                 onload="console.log('Image loaded successfully')"
-                                 onerror="this.onerror=null; this.alt='Image load failed'; this.style.border='2px solid #f87171'; console.error('Image failed to load');" />
-                            <span class="badge">✨ Image generated (ID: ${data.id || 'N/A'})</span>
-                        </div>
-                    `;
-                } else if (data.type === 'video' && imageUrl) {
-                    resultDiv.innerHTML = `
-                        <video controls autoplay loop>
-                            <source src="${imageUrl}" type="video/mp4">
-                            Your browser does not support video playback.
-                        </video>
-                        <span class="badge">🎬 Video generated (ID: ${data.id || 'N/A'})</span>
+                currentImageUrl = imageUrl;
+                currentType = data.type || 'image';
+
+                if (currentType === 'image') {
+                    resultArea.innerHTML = `
+                        <img src="${currentImageUrl}" alt="GENERATED IMAGE" 
+                             onerror="this.alt='IMAGE LOAD FAILED'; this.style.border='2px solid #ef4444';" />
+                        ${imageMode === 'multi' ? `<p style="color:#6b7280;font-size:0.75rem;margin-top:0.5rem;text-transform:uppercase;">MULTI IMAGE MODE</p>` : ''}
                     `;
                 } else {
-                    throw new Error('No image URL returned from server');
+                    resultArea.innerHTML = `
+                        <video controls autoplay loop>
+                            <source src="${currentImageUrl}" type="video/mp4">
+                            YOUR BROWSER DOES NOT SUPPORT VIDEO PLAYBACK.
+                        </video>
+                    `;
                 }
 
-                // Load history after generation
-                await loadHistory();
+                actionBar.style.display = 'flex';
+                errorDiv.style.display = 'none';
 
             } catch (err) {
-                console.error('Generation error:', err);
+                console.error('ERROR:', err);
                 errorDiv.textContent = '❌ ' + err.message;
                 errorDiv.style.display = 'block';
-                resultDiv.innerHTML = '<span class="placeholder">❌ Generation failed. Please try again.</span>';
+                resultArea.innerHTML = '<div class="placeholder"><span class="icon">❌</span>GENERATION FAILED. PLEASE TRY AGAIN.</div>';
+                actionBar.style.display = 'none';
             } finally {
-                btn.disabled = false;
+                generateBtn.disabled = false;
                 loader.style.display = 'none';
             }
         }
 
-        // Load history from KV via API
-        async function loadHistory() {
-            try {
-                const response = await fetch('/api/history');
-                
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    console.warn('History endpoint returned non-JSON response');
-                    const historySection = document.getElementById('historySection');
-                    historySection.style.display = 'block';
-                    document.getElementById('historyList').innerHTML = '<div class="no-history">⚠️ History endpoint not available. Your images are still being generated!</div>';
-                    return;
-                }
+        // GENERATE ON BUTTON CLICK
+        generateBtn.addEventListener('click', generate);
 
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || 'Failed to load history');
-                }
-
-                const historySection = document.getElementById('historySection');
-                const historyList = document.getElementById('historyList');
-
-                if (data.items && data.items.length > 0) {
-                    historySection.style.display = 'block';
-                    historyList.innerHTML = data.items.map(item => {
-                        let itemUrl = item.url;
-                        // Fix URL if needed
-                        if (typeof itemUrl === 'string' && itemUrl.startsWith('/9j/')) {
-                            itemUrl = `data:image/jpeg;base64,${itemUrl}`;
-                        }
-                        return `
-                        <div class="history-item" onclick="viewHistoryItem('${item.id}')">
-                            <img src="${itemUrl}" alt="Generated item" 
-                                 onerror="this.style.display='none'; this.parentElement.querySelector('.img-error').style.display='block';" />
-                            <span class="img-error" style="display:none;color:#64748b;font-size:0.7rem;width:50px;text-align:center;">No img</span>
-                            <div class="info">
-                                <span class="prompt-text">${item.prompt ? item.prompt.substring(0, 60) : 'No prompt'}${item.prompt && item.prompt.length > 60 ? '...' : ''}</span>
-                                <span class="date">${item.created ? new Date(item.created).toLocaleString() : 'Unknown date'}</span>
-                            </div>
-                            <span class="type-badge">${item.type || 'image'}</span>
-                        </div>
-                    `}).join('');
-                } else {
-                    historySection.style.display = 'block';
-                    historyList.innerHTML = '<div class="no-history">No history yet. Generate something!</div>';
-                }
-            } catch (err) {
-                console.error('History load error:', err);
-                const historySection = document.getElementById('historySection');
-                historySection.style.display = 'block';
-                document.getElementById('historyList').innerHTML = '<div class="no-history">⚠️ Could not load history. Your images are still working!</div>';
+        // PREVIEW
+        previewBtn.addEventListener('click', function() {
+            if (currentImageUrl) {
+                previewImage.src = currentImageUrl;
+                previewModal.classList.add('active');
             }
-        }
+        });
 
-        async function viewHistoryItem(id) {
-            try {
-                const response = await fetch(`/api/history/${id}`);
-                const data = await response.json();
-                const resultDiv = document.getElementById('result');
-                
-                let imageUrl = data.url;
-                if (typeof imageUrl === 'string' && imageUrl.startsWith('/9j/')) {
-                    imageUrl = `data:image/jpeg;base64,${imageUrl}`;
-                }
-                
-                if (data.type === 'image') {
-                    resultDiv.innerHTML = `
-                        <img src="${imageUrl}" alt="Generated image" 
-                             onerror="this.alt='Image load failed'; this.style.border='2px solid #f87171';" />
-                        <span class="badge">📜 History item: ${data.id}</span>
-                    `;
-                } else if (data.type === 'video') {
-                    resultDiv.innerHTML = `
-                        <video controls autoplay>
-                            <source src="${imageUrl}" type="video/mp4">
-                            Your browser does not support video playback.
-                        </video>
-                        <span class="badge">📜 History item: ${data.id}</span>
-                    `;
-                }
-            } catch (err) {
-                document.getElementById('error').textContent = '❌ Could not load item';
-                document.getElementById('error').style.display = 'block';
+        // CLOSE MODAL
+        closeModal.addEventListener('click', function() {
+            previewModal.classList.remove('active');
+        });
+
+        previewModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                previewModal.classList.remove('active');
             }
-        }
+        });
 
-        // Load history on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            loadHistory().catch(() => {
-                // Silently fail - history is non-critical
-            });
+        // DOWNLOAD
+        downloadBtn.addEventListener('click', function() {
+            if (currentImageUrl) {
+                const link = document.createElement('a');
+                link.href = currentImageUrl;
+                const extension = currentType === 'image' ? 'jpg' : 'mp4';
+                link.download = `FIXORIUM_${Date.now()}.${extension}`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        });
+
+        // EDIT - OPENS IN NEW TAB
+        editBtn.addEventListener('click', function() {
+            if (currentImageUrl) {
+                const win = window.open('', '_blank');
+                if (win) {
+                    win.document.write(`
+                        <html>
+                        <head><title>EDIT IMAGE - FIXORIUM AI</title></head>
+                        <body style="margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#1a1a2e;">
+                            <img src="${currentImageUrl}" style="max-width:90%;max-height:90vh;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,0.5);" />
+                        </body>
+                        </html>
+                    `);
+                    win.document.close();
+                }
+            }
+        });
+
+        // KEYBOARD SHORTCUT: CTRL+ENTER TO GENERATE
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                generate();
+            }
         });
     </script>
 </body>
