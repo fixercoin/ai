@@ -1,8 +1,8 @@
 // functions/api/generate.js
-// FIXED: Proper image URL handling
+// FIXED: Proper routing for all endpoints
 
 export async function onRequest(context) {
-    const { request, env } = context;
+    const { request, env, next } = context;
     const url = new URL(request.url);
     const path = url.pathname;
 
@@ -15,6 +15,7 @@ export async function onRequest(context) {
     // ENDPOINT 1: GET /api/history - Fetch all history
     // ============================================================
     if (request.method === 'GET' && path === '/api/history') {
+        console.log('Handling /api/history request');
         try {
             if (!env.GENERATIONS) {
                 return new Response(JSON.stringify({ 
@@ -22,7 +23,10 @@ export async function onRequest(context) {
                     message: 'History storage is not available'
                 }), {
                     status: 200,
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    }
                 });
             }
 
@@ -30,6 +34,7 @@ export async function onRequest(context) {
             const historyData = await env.GENERATIONS.get('history_list');
             if (historyData) {
                 historyList = JSON.parse(historyData);
+                console.log('History list length:', historyList.length);
             }
 
             const items = [];
@@ -38,10 +43,15 @@ export async function onRequest(context) {
                     const itemData = await env.GENERATIONS.get(id);
                     if (itemData) {
                         const item = JSON.parse(itemData);
+                        // Ensure URL has data prefix if needed
+                        let itemUrl = item.url || '';
+                        if (typeof itemUrl === 'string' && itemUrl.startsWith('/9j/')) {
+                            itemUrl = `data:image/jpeg;base64,${itemUrl}`;
+                        }
                         items.push({
                             id: item.id,
                             prompt: item.prompt || 'No prompt',
-                            url: item.url || '',
+                            url: itemUrl,
                             type: item.type || 'image',
                             created: item.created || Date.now()
                         });
@@ -51,7 +61,9 @@ export async function onRequest(context) {
                 }
             }
 
+            console.log('Returning', items.length, 'history items');
             return new Response(JSON.stringify({ items }), {
+                status: 200,
                 headers: { 
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*'
@@ -64,7 +76,10 @@ export async function onRequest(context) {
                 error: error.message 
             }), {
                 status: 200,
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                }
             });
         }
     }
@@ -74,12 +89,16 @@ export async function onRequest(context) {
     // ============================================================
     if (request.method === 'GET' && path.startsWith('/api/history/')) {
         const id = path.split('/').pop();
+        console.log('Handling /api/history/:id with ID:', id);
         
         try {
             if (!env.GENERATIONS) {
                 return new Response(JSON.stringify({ error: 'KV binding not found' }), {
                     status: 404,
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    }
                 });
             }
 
@@ -87,20 +106,32 @@ export async function onRequest(context) {
             if (!itemData) {
                 return new Response(JSON.stringify({ error: 'Not found' }), {
                     status: 404,
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    }
                 });
             }
             const item = JSON.parse(itemData);
+            // Ensure URL has data prefix if needed
+            if (item.url && typeof item.url === 'string' && item.url.startsWith('/9j/')) {
+                item.url = `data:image/jpeg;base64,${item.url}`;
+            }
             return new Response(JSON.stringify(item), {
+                status: 200,
                 headers: { 
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*'
                 }
             });
         } catch (error) {
+            console.error('History item error:', error);
             return new Response(JSON.stringify({ error: error.message }), {
                 status: 500,
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                }
             });
         }
     }
@@ -109,13 +140,17 @@ export async function onRequest(context) {
     // ENDPOINT 3: POST /api/generate - Generate new content
     // ============================================================
     if (request.method === 'POST' && path === '/api/generate') {
+        console.log('Handling /api/generate request');
         try {
             if (!env.AI) {
                 return new Response(JSON.stringify({ 
                     error: 'AI binding not found. Please add AI binding in Cloudflare Dashboard.' 
                 }), {
                     status: 500,
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    }
                 });
             }
 
@@ -124,7 +159,10 @@ export async function onRequest(context) {
             if (!prompt || prompt.trim().length === 0) {
                 return new Response(JSON.stringify({ error: 'Prompt is required' }), {
                     status: 400,
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    }
                 });
             }
 
@@ -140,73 +178,47 @@ export async function onRequest(context) {
 
             console.log('AI response type:', typeof aiResponse);
             
-            // ============================================================
-            // FIX: Properly handle AI response and ensure data URL format
-            // ============================================================
+            // Extract image URL from response
             let imageUrl = null;
 
-            // If response is a string
             if (typeof aiResponse === 'string') {
-                // If it's already a complete data URL
                 if (aiResponse.startsWith('data:image')) {
                     imageUrl = aiResponse;
-                    console.log('Complete data URL received');
-                }
-                // If it's raw base64 (starts with /9j/ for JPEG)
-                else if (aiResponse.startsWith('/9j/') || aiResponse.match(/^[A-Za-z0-9+/=]+$/)) {
-                    // Add the data URL prefix
+                } else if (aiResponse.startsWith('/9j/') || aiResponse.match(/^[A-Za-z0-9+/=]+$/)) {
                     imageUrl = `data:image/jpeg;base64,${aiResponse}`;
-                    console.log('Raw base64 converted to data URL');
-                }
-                // If it's a URL path
-                else if (aiResponse.startsWith('http://') || aiResponse.startsWith('https://')) {
+                } else if (aiResponse.startsWith('http://') || aiResponse.startsWith('https://')) {
                     imageUrl = aiResponse;
-                    console.log('HTTP URL received');
-                }
-                // Try to parse as JSON
-                else {
+                } else {
                     try {
                         const parsed = JSON.parse(aiResponse);
-                        console.log('Parsed JSON:', Object.keys(parsed));
                         if (parsed.image) {
                             let imgData = parsed.image;
-                            if (!imgData.startsWith('data:image') && !imgData.startsWith('http')) {
-                                imgData = `data:image/jpeg;base64,${imgData}`;
+                            if (typeof imgData === 'string' && !imgData.startsWith('data:image') && !imgData.startsWith('http')) {
+                                if (imgData.startsWith('/9j/')) {
+                                    imgData = `data:image/jpeg;base64,${imgData}`;
+                                } else {
+                                    imgData = `data:image/jpeg;base64,${imgData}`;
+                                }
                             }
                             imageUrl = imgData;
                         } else if (parsed.url) {
                             imageUrl = parsed.url;
                         } else if (parsed.data) {
                             imageUrl = `data:image/jpeg;base64,${parsed.data}`;
-                        } else if (parsed.output) {
-                            if (Array.isArray(parsed.output) && parsed.output.length > 0) {
-                                let out = parsed.output[0];
-                                if (!out.startsWith('data:image') && !out.startsWith('http')) {
-                                    out = `data:image/jpeg;base64,${out}`;
-                                }
-                                imageUrl = out;
-                            } else if (typeof parsed.output === 'string') {
-                                let out = parsed.output;
-                                if (!out.startsWith('data:image') && !out.startsWith('http')) {
-                                    out = `data:image/jpeg;base64,${out}`;
-                                }
-                                imageUrl = out;
-                            }
                         }
                     } catch (e) {
-                        console.log('Not valid JSON, using as string');
+                        console.log('Not valid JSON');
                     }
                 }
-            } 
-            // If response is an object
-            else if (typeof aiResponse === 'object' && aiResponse !== null) {
-                console.log('Response is object, keys:', Object.keys(aiResponse));
-                
-                // Check common response formats
+            } else if (typeof aiResponse === 'object' && aiResponse !== null) {
                 if (aiResponse.image) {
                     let imgData = aiResponse.image;
                     if (typeof imgData === 'string' && !imgData.startsWith('data:image') && !imgData.startsWith('http')) {
-                        imgData = `data:image/jpeg;base64,${imgData}`;
+                        if (imgData.startsWith('/9j/')) {
+                            imgData = `data:image/jpeg;base64,${imgData}`;
+                        } else {
+                            imgData = `data:image/jpeg;base64,${imgData}`;
+                        }
                     }
                     imageUrl = imgData;
                 } else if (aiResponse.url) {
@@ -217,13 +229,21 @@ export async function onRequest(context) {
                     if (Array.isArray(aiResponse.output) && aiResponse.output.length > 0) {
                         let out = aiResponse.output[0];
                         if (typeof out === 'string' && !out.startsWith('data:image') && !out.startsWith('http')) {
-                            out = `data:image/jpeg;base64,${out}`;
+                            if (out.startsWith('/9j/')) {
+                                out = `data:image/jpeg;base64,${out}`;
+                            } else {
+                                out = `data:image/jpeg;base64,${out}`;
+                            }
                         }
                         imageUrl = out;
                     } else if (typeof aiResponse.output === 'string') {
                         let out = aiResponse.output;
                         if (!out.startsWith('data:image') && !out.startsWith('http')) {
-                            out = `data:image/jpeg;base64,${out}`;
+                            if (out.startsWith('/9j/')) {
+                                out = `data:image/jpeg;base64,${out}`;
+                            } else {
+                                out = `data:image/jpeg;base64,${out}`;
+                            }
                         }
                         imageUrl = out;
                     }
@@ -233,7 +253,11 @@ export async function onRequest(context) {
                         if (result.image) {
                             let imgData = result.image;
                             if (typeof imgData === 'string' && !imgData.startsWith('data:image') && !imgData.startsWith('http')) {
-                                imgData = `data:image/jpeg;base64,${imgData}`;
+                                if (imgData.startsWith('/9j/')) {
+                                    imgData = `data:image/jpeg;base64,${imgData}`;
+                                } else {
+                                    imgData = `data:image/jpeg;base64,${imgData}`;
+                                }
                             }
                             imageUrl = imgData;
                         } else if (result.url) {
@@ -245,10 +269,9 @@ export async function onRequest(context) {
                 }
             }
 
-            // If we still don't have an image URL, try to create one from bytes
+            // If we still don't have an image URL, try bytes conversion
             if (!imageUrl) {
                 try {
-                    // Try to convert response to ArrayBuffer
                     let arrayBuffer;
                     if (aiResponse instanceof ReadableStream) {
                         arrayBuffer = await new Response(aiResponse).arrayBuffer();
@@ -268,14 +291,12 @@ export async function onRequest(context) {
                         }
                         const base64 = btoa(binary);
                         imageUrl = `data:image/jpeg;base64,${base64}`;
-                        console.log('Created image URL from bytes');
                     }
                 } catch (e) {
                     console.error('Error converting bytes:', e);
                 }
             }
 
-            // If we still don't have an image, return error
             if (!imageUrl) {
                 console.error('Could not extract image from response');
                 return new Response(JSON.stringify({
@@ -283,13 +304,15 @@ export async function onRequest(context) {
                     responseType: typeof aiResponse
                 }), {
                     status: 500,
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    }
                 });
             }
 
-            // Ensure the URL starts correctly
+            // Final URL fix
             if (typeof imageUrl === 'string' && !imageUrl.startsWith('data:image') && !imageUrl.startsWith('http')) {
-                // If it starts with /9j/ but doesn't have the prefix
                 if (imageUrl.startsWith('/9j/')) {
                     imageUrl = `data:image/jpeg;base64,${imageUrl}`;
                 } else {
@@ -340,6 +363,7 @@ export async function onRequest(context) {
                 url: imageUrl,
                 id: id
             }), {
+                status: 200,
                 headers: { 
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*'
@@ -353,20 +377,27 @@ export async function onRequest(context) {
                 stack: error.stack
             }), {
                 status: 500,
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                }
             });
         }
     }
 
     // ============================================================
-    // 404 - Not found
+    // If no route matched, return 404 as JSON
     // ============================================================
+    console.log('No route matched for:', path);
     return new Response(JSON.stringify({ 
         error: 'Not found',
         path: path,
         method: request.method
     }), {
         status: 404,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+        }
     });
 }
