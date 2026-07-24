@@ -1,5 +1,5 @@
 // functions/api/generate.js
-// Updated to support IMAGE, VIDEO, and VOICE modes
+// Supports TEXT, IMAGE, and VIDEO generation
 
 export async function onRequest(context) {
     const { request, env } = context;
@@ -18,7 +18,7 @@ export async function onRequest(context) {
                 });
             }
 
-            const { prompt, mode } = await request.json();
+            const { prompt, mode, image, fileType } = await request.json();
 
             if (!prompt || prompt.trim().length === 0) {
                 return new Response(JSON.stringify({ error: 'Prompt is required' }), {
@@ -27,25 +27,56 @@ export async function onRequest(context) {
                 });
             }
 
-            // Log the request
-            console.log('Generating with:', { prompt, mode });
+            console.log('Generating with:', { prompt, mode, hasImage: !!image });
 
             // ============================================================
-            // HANDLE DIFFERENT MODES
+            // MODE 1: TEXT GENERATION
             // ============================================================
-            
-            // Default to image generation
-            let responseData = {
-                type: 'image',
-                url: null
-            };
+            if (mode === 'text') {
+                try {
+                    // Use a text generation model
+                    const textModel = '@cf/meta/llama-2-7b-chat-int8';
+                    const textResponse = await env.AI.run(textModel, {
+                        prompt: prompt,
+                        max_tokens: 500
+                    });
 
-            // If mode is 'voice', we just use the transcribed text (already in prompt)
-            // The voice transcription happens on the frontend, so we just generate image/video
-            // based on the transcribed prompt
+                    let responseText = '';
+                    if (typeof textResponse === 'string') {
+                        responseText = textResponse;
+                    } else if (typeof textResponse === 'object' && textResponse !== null) {
+                        responseText = textResponse.response || textResponse.message || textResponse.text || JSON.stringify(textResponse);
+                    } else {
+                        responseText = 'Sorry, I could not generate a response. Please try again.';
+                    }
+
+                    return new Response(JSON.stringify({
+                        type: 'text',
+                        text: responseText
+                    }), {
+                        status: 200,
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*'
+                        }
+                    });
+                } catch (textError) {
+                    console.error('Text generation error:', textError);
+                    return new Response(JSON.stringify({
+                        type: 'text',
+                        text: 'I encountered an error while generating a response. Please try again.'
+                    }), {
+                        status: 200,
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*'
+                        }
+                    });
+                }
+            }
 
             // ============================================================
-            // GENERATE IMAGE using Cloudflare Workers AI
+            // MODE 2: IMAGE GENERATION
             // ============================================================
             const model = '@cf/black-forest-labs/flux-1-schnell';
             
@@ -55,9 +86,7 @@ export async function onRequest(context) {
                 height: 1024
             };
 
-            // For video mode, we still generate an image first
-            // (Cloudflare Workers AI doesn't directly generate videos yet)
-            // The frontend will display it as video type
+            // Enhance prompt for video mode
             if (mode === 'video') {
                 genParams.prompt = prompt + ", cinematic, high quality, 4k";
             }
@@ -66,11 +95,7 @@ export async function onRequest(context) {
 
             let imageUrl = null;
 
-            // ============================================================
-            // EXTRACT IMAGE URL FROM RESPONSE
-            // ============================================================
-
-            // If response is a string
+            // Extract image URL from response
             if (typeof aiResponse === 'string') {
                 if (aiResponse.startsWith('data:image')) {
                     imageUrl = aiResponse;
@@ -92,13 +117,9 @@ export async function onRequest(context) {
                         } else if (parsed.data) {
                             imageUrl = `data:image/jpeg;base64,${parsed.data}`;
                         }
-                    } catch (e) {
-                        console.log('Could not parse response as JSON');
-                    }
+                    } catch (e) {}
                 }
-            } 
-            // If response is an object
-            else if (typeof aiResponse === 'object' && aiResponse !== null) {
+            } else if (typeof aiResponse === 'object' && aiResponse !== null) {
                 if (aiResponse.image) {
                     let imgData = aiResponse.image;
                     if (typeof imgData === 'string' && !imgData.startsWith('data:image') && !imgData.startsWith('http')) {
@@ -141,9 +162,7 @@ export async function onRequest(context) {
                 }
             }
 
-            // ============================================================
-            // FALLBACK: Try bytes conversion
-            // ============================================================
+            // Fallback: bytes conversion
             if (!imageUrl) {
                 try {
                     let arrayBuffer;
@@ -166,14 +185,9 @@ export async function onRequest(context) {
                         const base64 = btoa(binary);
                         imageUrl = `data:image/jpeg;base64,${base64}`;
                     }
-                } catch (e) {
-                    console.error('Bytes conversion error:', e);
-                }
+                } catch (e) {}
             }
 
-            // ============================================================
-            // FINAL URL FIX
-            // ============================================================
             if (!imageUrl) {
                 return new Response(JSON.stringify({
                     error: 'Could not generate image. Please try again.'
@@ -191,21 +205,10 @@ export async function onRequest(context) {
                 }
             }
 
-            // ============================================================
-            // SET RESPONSE TYPE BASED ON MODE
-            // ============================================================
-            if (mode === 'video') {
-                responseData.type = 'video';
-            } else {
-                responseData.type = 'image';
-            }
-            
-            responseData.url = imageUrl;
-
-            // ============================================================
-            // RETURN RESPONSE
-            // ============================================================
-            return new Response(JSON.stringify(responseData), {
+            return new Response(JSON.stringify({
+                type: mode === 'video' ? 'video' : 'image',
+                url: imageUrl
+            }), {
                 status: 200,
                 headers: { 
                     'Content-Type': 'application/json',
@@ -224,13 +227,8 @@ export async function onRequest(context) {
         }
     }
 
-    // ============================================================
-    // 404 - Not found
-    // ============================================================
     return new Response(JSON.stringify({ 
-        error: 'Not found',
-        path: path,
-        method: request.method
+        error: 'Not found'
     }), {
         status: 404,
         headers: { 'Content-Type': 'application/json' }
