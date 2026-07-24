@@ -130,6 +130,9 @@
             border-radius: 0.5rem;
             border: 1px solid rgba(248,113,113,0.2);
             display: none;
+            word-break: break-word;
+            max-height: 200px;
+            overflow-y: auto;
         }
         .badge {
             display: inline-block;
@@ -163,6 +166,7 @@
             height: 50px;
             object-fit: cover;
             border-radius: 0.25rem;
+            background: #0a0a1a;
         }
         .history-item .info {
             flex: 1;
@@ -193,12 +197,27 @@
             text-align: center;
             padding: 1rem;
         }
+        .debug-info {
+            background: #0a0a1a;
+            border: 1px solid #2d2d44;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.7rem;
+            color: #64748b;
+            word-break: break-all;
+            max-height: 100px;
+            overflow-y: auto;
+            display: none;
+        }
         .image-container {
             position: relative;
             display: inline-block;
+            max-width: 100%;
         }
         .image-container img {
             display: block;
+            max-width: 100%;
         }
     </style>
 </head>
@@ -221,6 +240,7 @@
             <span class="placeholder">✨ Your creation will appear here</span>
         </div>
         <div class="error" id="error"></div>
+        <div class="debug-info" id="debugInfo"></div>
 
         <div class="history" id="historySection" style="display:none;">
             <h3>📜 History (Stored in KV)</h3>
@@ -244,12 +264,15 @@
         async function generate() {
             const prompt = document.getElementById('prompt').value.trim();
             const errorDiv = document.getElementById('error');
+            const debugDiv = document.getElementById('debugInfo');
             const resultDiv = document.getElementById('result');
             const btn = document.getElementById('generateBtn');
             const loader = document.getElementById('loader');
 
             errorDiv.style.display = 'none';
             errorDiv.textContent = '';
+            debugDiv.style.display = 'none';
+            debugDiv.textContent = '';
 
             if (!prompt) {
                 errorDiv.textContent = '⚠️ Please enter a prompt';
@@ -268,11 +291,11 @@
                     body: JSON.stringify({ prompt, mode: currentMode })
                 });
 
-                // Check if response is JSON
+                // Check content type
                 const contentType = response.headers.get('content-type');
                 if (!contentType || !contentType.includes('application/json')) {
                     const text = await response.text();
-                    throw new Error(`Server returned ${response.status}: ${text.substring(0, 100)}...`);
+                    throw new Error(`Server returned HTML (${response.status}): ${text.substring(0, 200)}...`);
                 }
 
                 const data = await response.json();
@@ -281,16 +304,38 @@
                     throw new Error(data.error || 'Something went wrong');
                 }
 
+                // Debug info
+                console.log('Response data:', data);
+                console.log('Image URL type:', typeof data.url);
+                console.log('Image URL preview:', data.url ? data.url.substring(0, 100) : 'null');
+
+                // Show debug info
+                if (data.url) {
+                    debugDiv.style.display = 'block';
+                    debugDiv.textContent = `Image URL length: ${data.url.length} characters`;
+                }
+
                 // Display the result
-                if (data.type === 'image') {
+                if (data.type === 'image' && data.url) {
+                    // Test if URL is valid
+                    const img = new Image();
+                    img.onload = function() {
+                        console.log('Image loaded successfully');
+                    };
+                    img.onerror = function(e) {
+                        console.error('Image failed to load:', e);
+                        debugDiv.textContent += '\n❌ Image failed to load. URL may be corrupted.';
+                    };
+                    img.src = data.url;
+
                     resultDiv.innerHTML = `
                         <div class="image-container">
                             <img src="${data.url}" alt="Generated image" 
-                                 onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22500%22 height=%22500%22%3E%3Crect width=%22500%22 height=%22500%22 fill=%22%231a1a2e%22/%3E%3Ctext x=%22250%22 y=%22250%22 text-anchor=%22middle%22 fill=%22%236366f1%22 font-size=%2220%22%3EImage Load Failed%3C/text%3E%3C/svg%3E'" />
+                                 onerror="this.onerror=null; this.alt='Image load failed'; this.style.border='2px solid #f87171';" />
                             <span class="badge">✨ Image generated (ID: ${data.id || 'N/A'})</span>
                         </div>
                     `;
-                } else if (data.type === 'video') {
+                } else if (data.type === 'video' && data.url) {
                     resultDiv.innerHTML = `
                         <video controls autoplay loop>
                             <source src="${data.url}" type="video/mp4">
@@ -298,6 +343,8 @@
                         </video>
                         <span class="badge">🎬 Video generated (ID: ${data.id || 'N/A'})</span>
                     `;
+                } else {
+                    throw new Error('No image URL returned from server');
                 }
 
                 // Load history after generation
@@ -319,7 +366,6 @@
             try {
                 const response = await fetch('/api/history');
                 
-                // Check if response is JSON
                 const contentType = response.headers.get('content-type');
                 if (!contentType || !contentType.includes('application/json')) {
                     console.warn('History endpoint returned non-JSON response');
@@ -343,7 +389,8 @@
                     historyList.innerHTML = data.items.map(item => `
                         <div class="history-item" onclick="viewHistoryItem('${item.id}')">
                             <img src="${item.url}" alt="Generated item" 
-                                 onerror="this.style.display='none'" />
+                                 onerror="this.style.display='none'; this.parentElement.querySelector('.img-error').style.display='block';" />
+                            <span class="img-error" style="display:none;color:#64748b;font-size:0.7rem;width:50px;text-align:center;">No img</span>
                             <div class="info">
                                 <span class="prompt-text">${item.prompt ? item.prompt.substring(0, 60) : 'No prompt'}${item.prompt && item.prompt.length > 60 ? '...' : ''}</span>
                                 <span class="date">${item.created ? new Date(item.created).toLocaleString() : 'Unknown date'}</span>
@@ -370,7 +417,8 @@
                 const resultDiv = document.getElementById('result');
                 if (data.type === 'image') {
                     resultDiv.innerHTML = `
-                        <img src="${data.url}" alt="Generated image" />
+                        <img src="${data.url}" alt="Generated image" 
+                             onerror="this.alt='Image load failed'; this.style.border='2px solid #f87171';" />
                         <span class="badge">📜 History item: ${data.id}</span>
                     `;
                 } else if (data.type === 'video') {
@@ -390,7 +438,6 @@
 
         // Load history on page load
         document.addEventListener('DOMContentLoaded', () => {
-            // Try to load history, but don't block the UI
             loadHistory().catch(() => {
                 // Silently fail - history is non-critical
             });
