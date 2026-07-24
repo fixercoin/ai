@@ -1,27 +1,38 @@
 // functions/api/generate.js
-// Complete Pages Function with ALL endpoints
+// Complete Pages Function with proper error handling
 
 export async function onRequest(context) {
     const { request, env } = context;
     const url = new URL(request.url);
     const path = url.pathname;
 
+    // Log environment for debugging
+    console.log('AI Binding exists:', !!env.AI);
+    console.log('KV Binding exists:', !!env.GENERATIONS);
+
     // ============================================================
     // ENDPOINT 1: GET /api/history - Fetch all history
     // ============================================================
     if (request.method === 'GET' && path === '/api/history') {
         try {
+            // Check if KV exists
+            if (!env.GENERATIONS) {
+                return new Response(JSON.stringify({ 
+                    error: 'KV binding not found. Please add GENERATIONS binding in Cloudflare Dashboard.' 
+                }), {
+                    status: 500,
+                    headers: { 'Content-Type': 'application/json' }
+                });
+            }
+
             let historyList = [];
-            
-            // Get the history list from KV
             const historyData = await env.GENERATIONS.get('history_list');
             if (historyData) {
                 historyList = JSON.parse(historyData);
             }
 
-            // Fetch each item from KV
             const items = [];
-            for (const id of historyList.slice(0, 50)) { // Limit to 50 items
+            for (const id of historyList.slice(0, 50)) {
                 try {
                     const itemData = await env.GENERATIONS.get(id);
                     if (itemData) {
@@ -35,7 +46,6 @@ export async function onRequest(context) {
                         });
                     }
                 } catch (e) {
-                    // Skip invalid items
                     console.error('Error fetching item:', id, e);
                 }
             }
@@ -61,6 +71,15 @@ export async function onRequest(context) {
         const id = path.split('/').pop();
         
         try {
+            if (!env.GENERATIONS) {
+                return new Response(JSON.stringify({ 
+                    error: 'KV binding not found' 
+                }), {
+                    status: 500,
+                    headers: { 'Content-Type': 'application/json' }
+                });
+            }
+
             const itemData = await env.GENERATIONS.get(id);
             if (!itemData) {
                 return new Response(JSON.stringify({ error: 'Not found' }), {
@@ -88,6 +107,18 @@ export async function onRequest(context) {
     // ============================================================
     if (request.method === 'POST' && path === '/api/generate') {
         try {
+            // ============================================================
+            // CRITICAL: Check if AI binding exists
+            // ============================================================
+            if (!env.AI) {
+                return new Response(JSON.stringify({ 
+                    error: 'AI binding not found. Please add AI binding in Cloudflare Dashboard.\n\nInstructions:\n1. Go to your Pages project\n2. Settings → Functions\n3. Add binding → Workers AI\n4. Variable name: AI\n5. Click Save' 
+                }), {
+                    status: 500,
+                    headers: { 'Content-Type': 'application/json' }
+                });
+            }
+
             const { prompt, mode } = await request.json();
 
             if (!prompt || prompt.trim().length === 0) {
@@ -97,15 +128,19 @@ export async function onRequest(context) {
                 });
             }
 
-            // --------------------------------------------------------
+            // ============================================================
             // STEP 1: Generate Image using Cloudflare Workers AI
-            // --------------------------------------------------------
+            // ============================================================
+            console.log('Generating image with prompt:', prompt);
+            
             const model = '@cf/black-forest-labs/flux-1-schnell';
             const aiResponse = await env.AI.run(model, {
                 prompt: prompt,
                 width: 1024,
                 height: 1024
             });
+
+            console.log('AI response received');
 
             // Convert AI response to image bytes
             let imageBytes;
@@ -127,9 +162,9 @@ export async function onRequest(context) {
             // Generate unique ID
             const id = `gen_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
 
-            // --------------------------------------------------------
-            // STEP 2: Store in KV
-            // --------------------------------------------------------
+            // ============================================================
+            // STEP 2: Store in KV (if available)
+            // ============================================================
             const generationData = {
                 id: id,
                 prompt: prompt,
@@ -138,30 +173,39 @@ export async function onRequest(context) {
                 created: Date.now()
             };
 
-            // Store individual item
-            await env.GENERATIONS.put(id, JSON.stringify(generationData));
-
-            // Update history list
-            let historyList = [];
             try {
-                const historyData = await env.GENERATIONS.get('history_list');
-                if (historyData) {
-                    historyList = JSON.parse(historyData);
+                if (env.GENERATIONS) {
+                    // Store individual item
+                    await env.GENERATIONS.put(id, JSON.stringify(generationData));
+
+                    // Update history list
+                    let historyList = [];
+                    try {
+                        const historyData = await env.GENERATIONS.get('history_list');
+                        if (historyData) {
+                            historyList = JSON.parse(historyData);
+                        }
+                    } catch (e) {
+                        // List doesn't exist yet
+                    }
+
+                    historyList.unshift(id);
+                    if (historyList.length > 50) {
+                        historyList = historyList.slice(0, 50);
+                    }
+                    await env.GENERATIONS.put('history_list', JSON.stringify(historyList));
+                    console.log('Stored in KV with ID:', id);
+                } else {
+                    console.log('KV not available, skipping storage');
                 }
-            } catch (e) {
-                // List doesn't exist yet
+            } catch (kvError) {
+                console.error('KV storage error:', kvError);
+                // Continue even if KV fails
             }
 
-            // Add new ID to the beginning (max 50 items)
-            historyList.unshift(id);
-            if (historyList.length > 50) {
-                historyList = historyList.slice(0, 50);
-            }
-            await env.GENERATIONS.put('history_list', JSON.stringify(historyList));
-
-            // --------------------------------------------------------
+            // ============================================================
             // STEP 3: Return response
-            // --------------------------------------------------------
+            // ============================================================
             return new Response(JSON.stringify({
                 type: mode === 'video' ? 'video' : 'image',
                 url: imageUrl,
@@ -176,7 +220,8 @@ export async function onRequest(context) {
         } catch (error) {
             console.error('Generation error:', error);
             return new Response(JSON.stringify({
-                error: error.message || 'Internal server error'
+                error: error.message || 'Internal server error',
+                details: error.stack || 'No stack trace available'
             }), {
                 status: 500,
                 headers: { 'Content-Type': 'application/json' }
