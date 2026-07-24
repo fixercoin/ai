@@ -155,21 +155,43 @@
             border-radius: 0.5rem;
             margin-bottom: 0.5rem;
             cursor: pointer;
+            transition: background 0.2s;
         }
+        .history-item:hover { background: #1a1a2e; }
         .history-item img {
             width: 50px;
             height: 50px;
             object-fit: cover;
             border-radius: 0.25rem;
         }
-        .history-item span {
+        .history-item .info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .history-item .prompt-text {
             color: #e2e8f0;
             font-size: 0.85rem;
-            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 300px;
         }
         .history-item .date {
             color: #64748b;
             font-size: 0.75rem;
+        }
+        .history-item .type-badge {
+            font-size: 0.7rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 1rem;
+            background: rgba(99,102,241,0.2);
+            color: #818cf8;
+        }
+        .no-history {
+            color: #475569;
+            text-align: center;
+            padding: 1rem;
         }
     </style>
 </head>
@@ -260,7 +282,7 @@
                 }
 
                 // Load history after generation
-                loadHistory();
+                await loadHistory();
 
             } catch (err) {
                 errorDiv.textContent = '❌ ' + err.message;
@@ -285,26 +307,47 @@
                     historyList.innerHTML = data.items.map(item => `
                         <div class="history-item" onclick="viewHistoryItem('${item.id}')">
                             <img src="${item.url}" alt="Generated item" />
-                            <span>${item.prompt.substring(0, 50)}...</span>
-                            <span class="date">${new Date(item.created).toLocaleDateString()}</span>
+                            <div class="info">
+                                <span class="prompt-text">${item.prompt.substring(0, 60)}${item.prompt.length > 60 ? '...' : ''}</span>
+                                <span class="date">${new Date(item.created).toLocaleString()}</span>
+                            </div>
+                            <span class="type-badge">${item.type}</span>
                         </div>
                     `).join('');
                 } else {
-                    historySection.style.display = 'none';
+                    historySection.style.display = 'block';
+                    historyList.innerHTML = '<div class="no-history">No history yet. Generate something!</div>';
                 }
             } catch (err) {
-                console.log('History not available');
+                console.log('History not available:', err);
+                const historySection = document.getElementById('historySection');
+                historySection.style.display = 'block';
+                document.getElementById('historyList').innerHTML = '<div class="no-history">⚠️ Could not load history</div>';
             }
         }
 
         async function viewHistoryItem(id) {
-            const response = await fetch(`/api/history/${id}`);
-            const data = await response.json();
-            const resultDiv = document.getElementById('result');
-            if (data.type === 'image') {
-                resultDiv.innerHTML = `<img src="${data.url}" alt="Generated image" />`;
-            } else if (data.type === 'video') {
-                resultDiv.innerHTML = `<video controls autoplay><source src="${data.url}" type="video/mp4"></video>`;
+            try {
+                const response = await fetch(`/api/history/${id}`);
+                const data = await response.json();
+                const resultDiv = document.getElementById('result');
+                if (data.type === 'image') {
+                    resultDiv.innerHTML = `
+                        <img src="${data.url}" alt="Generated image" />
+                        <span class="badge">📜 History item: ${data.id}</span>
+                    `;
+                } else if (data.type === 'video') {
+                    resultDiv.innerHTML = `
+                        <video controls autoplay>
+                            <source src="${data.url}" type="video/mp4">
+                            Your browser does not support video playback.
+                        </video>
+                        <span class="badge">📜 History item: ${data.id}</span>
+                    `;
+                }
+            } catch (err) {
+                document.getElementById('error').textContent = '❌ Could not load item';
+                document.getElementById('error').style.display = 'block';
             }
         }
 
