@@ -193,6 +193,13 @@
             text-align: center;
             padding: 1rem;
         }
+        .image-container {
+            position: relative;
+            display: inline-block;
+        }
+        .image-container img {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -242,6 +249,7 @@
             const loader = document.getElementById('loader');
 
             errorDiv.style.display = 'none';
+            errorDiv.textContent = '';
 
             if (!prompt) {
                 errorDiv.textContent = '⚠️ Please enter a prompt';
@@ -251,7 +259,7 @@
 
             btn.disabled = true;
             loader.style.display = 'block';
-            resultDiv.innerHTML = '<span class="placeholder">⏳ Generating... please wait</span>';
+            resultDiv.innerHTML = '<span class="placeholder">⏳ Generating... please wait up to 30 seconds</span>';
 
             try {
                 const response = await fetch('/api/generate', {
@@ -260,16 +268,27 @@
                     body: JSON.stringify({ prompt, mode: currentMode })
                 });
 
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    throw new Error(`Server returned ${response.status}: ${text.substring(0, 100)}...`);
+                }
+
                 const data = await response.json();
 
                 if (!response.ok) {
                     throw new Error(data.error || 'Something went wrong');
                 }
 
+                // Display the result
                 if (data.type === 'image') {
                     resultDiv.innerHTML = `
-                        <img src="${data.url}" alt="Generated image" />
-                        <span class="badge">✨ Image generated (ID: ${data.id})</span>
+                        <div class="image-container">
+                            <img src="${data.url}" alt="Generated image" 
+                                 onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22500%22 height=%22500%22%3E%3Crect width=%22500%22 height=%22500%22 fill=%22%231a1a2e%22/%3E%3Ctext x=%22250%22 y=%22250%22 text-anchor=%22middle%22 fill=%22%236366f1%22 font-size=%2220%22%3EImage Load Failed%3C/text%3E%3C/svg%3E'" />
+                            <span class="badge">✨ Image generated (ID: ${data.id || 'N/A'})</span>
+                        </div>
                     `;
                 } else if (data.type === 'video') {
                     resultDiv.innerHTML = `
@@ -277,7 +296,7 @@
                             <source src="${data.url}" type="video/mp4">
                             Your browser does not support video playback.
                         </video>
-                        <span class="badge">🎬 Video generated (ID: ${data.id})</span>
+                        <span class="badge">🎬 Video generated (ID: ${data.id || 'N/A'})</span>
                     `;
                 }
 
@@ -285,6 +304,7 @@
                 await loadHistory();
 
             } catch (err) {
+                console.error('Generation error:', err);
                 errorDiv.textContent = '❌ ' + err.message;
                 errorDiv.style.display = 'block';
                 resultDiv.innerHTML = '<span class="placeholder">❌ Generation failed. Please try again.</span>';
@@ -298,7 +318,23 @@
         async function loadHistory() {
             try {
                 const response = await fetch('/api/history');
+                
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    console.warn('History endpoint returned non-JSON response');
+                    const historySection = document.getElementById('historySection');
+                    historySection.style.display = 'block';
+                    document.getElementById('historyList').innerHTML = '<div class="no-history">⚠️ History endpoint not available. Your images are still being generated!</div>';
+                    return;
+                }
+
                 const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to load history');
+                }
+
                 const historySection = document.getElementById('historySection');
                 const historyList = document.getElementById('historyList');
 
@@ -306,12 +342,13 @@
                     historySection.style.display = 'block';
                     historyList.innerHTML = data.items.map(item => `
                         <div class="history-item" onclick="viewHistoryItem('${item.id}')">
-                            <img src="${item.url}" alt="Generated item" />
+                            <img src="${item.url}" alt="Generated item" 
+                                 onerror="this.style.display='none'" />
                             <div class="info">
-                                <span class="prompt-text">${item.prompt.substring(0, 60)}${item.prompt.length > 60 ? '...' : ''}</span>
-                                <span class="date">${new Date(item.created).toLocaleString()}</span>
+                                <span class="prompt-text">${item.prompt ? item.prompt.substring(0, 60) : 'No prompt'}${item.prompt && item.prompt.length > 60 ? '...' : ''}</span>
+                                <span class="date">${item.created ? new Date(item.created).toLocaleString() : 'Unknown date'}</span>
                             </div>
-                            <span class="type-badge">${item.type}</span>
+                            <span class="type-badge">${item.type || 'image'}</span>
                         </div>
                     `).join('');
                 } else {
@@ -319,10 +356,10 @@
                     historyList.innerHTML = '<div class="no-history">No history yet. Generate something!</div>';
                 }
             } catch (err) {
-                console.log('History not available:', err);
+                console.error('History load error:', err);
                 const historySection = document.getElementById('historySection');
                 historySection.style.display = 'block';
-                document.getElementById('historyList').innerHTML = '<div class="no-history">⚠️ Could not load history</div>';
+                document.getElementById('historyList').innerHTML = '<div class="no-history">⚠️ Could not load history. Your images are still working!</div>';
             }
         }
 
@@ -352,7 +389,12 @@
         }
 
         // Load history on page load
-        document.addEventListener('DOMContentLoaded', loadHistory);
+        document.addEventListener('DOMContentLoaded', () => {
+            // Try to load history, but don't block the UI
+            loadHistory().catch(() => {
+                // Silently fail - history is non-critical
+            });
+        });
     </script>
 </body>
 </html>
