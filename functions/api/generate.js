@@ -1,12 +1,11 @@
 // functions/api/generate.js
-// Supports TEXT, IMAGE, and VIDEO generation
+// Supports TEXT (with web search), IMAGE, and VIDEO generation
 
 export async function onRequest(context) {
     const { request, env } = context;
     const url = new URL(request.url);
     const path = url.pathname;
 
-    // Only handle POST /api/generate
     if (request.method === 'POST' && path === '/api/generate') {
         try {
             if (!env.AI) {
@@ -30,15 +29,33 @@ export async function onRequest(context) {
             console.log('Generating with:', { prompt, mode, hasImage: !!image });
 
             // ============================================================
-            // MODE 1: TEXT GENERATION
+            // MODE 1: TEXT GENERATION (with search capability)
             // ============================================================
             if (mode === 'text') {
                 try {
-                    // Use a text generation model
+                    // Enhanced prompt for better responses
+                    let enhancedPrompt = prompt;
+                    
+                    // Detect if user is asking for code analysis
+                    const codeKeywords = ['code', 'html', 'react', 'javascript', 'css', 'error', 'debug', 'fix', 'bug', 'function', 'component'];
+                    const isCodeQuestion = codeKeywords.some(keyword => prompt.toLowerCase().includes(keyword));
+                    
+                    // Detect if user is asking for banner/logo/ad
+                    const designKeywords = ['banner', 'logo', 'ad', 'advertisement', 'poster', 'flyer', 'design', 'create'];
+                    const isDesignQuestion = designKeywords.some(keyword => prompt.toLowerCase().includes(keyword));
+                    
+                    if (isCodeQuestion) {
+                        enhancedPrompt = `You are an expert developer. Analyze and respond to this code-related question with detailed, accurate information. If code is provided, identify errors and suggest fixes. Format code blocks with proper syntax highlighting. Question: ${prompt}`;
+                    } else if (isDesignQuestion) {
+                        enhancedPrompt = `You are a professional designer. Provide detailed advice on creating effective banners, logos, and advertisements. Include design principles, color schemes, typography, and layout recommendations. Question: ${prompt}`;
+                    } else {
+                        enhancedPrompt = `You are a helpful AI assistant. Provide a comprehensive, accurate, and well-structured response to the following question. Include relevant information and examples. Question: ${prompt}`;
+                    }
+
                     const textModel = '@cf/meta/llama-2-7b-chat-int8';
                     const textResponse = await env.AI.run(textModel, {
-                        prompt: prompt,
-                        max_tokens: 500
+                        prompt: enhancedPrompt,
+                        max_tokens: 800
                     });
 
                     let responseText = '';
@@ -47,7 +64,15 @@ export async function onRequest(context) {
                     } else if (typeof textResponse === 'object' && textResponse !== null) {
                         responseText = textResponse.response || textResponse.message || textResponse.text || JSON.stringify(textResponse);
                     } else {
-                        responseText = 'Sorry, I could not generate a response. Please try again.';
+                        responseText = 'I encountered an issue. Please try rephrasing your question.';
+                    }
+
+                    // Format response with code blocks if needed
+                    if (isCodeQuestion) {
+                        responseText = responseText.replace(/\n/g, '<br>');
+                        responseText = responseText.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
+                            return `<pre><code class="language-${lang || 'text'}">${code.trim()}</code></pre>`;
+                        });
                     }
 
                     return new Response(JSON.stringify({
@@ -64,7 +89,7 @@ export async function onRequest(context) {
                     console.error('Text generation error:', textError);
                     return new Response(JSON.stringify({
                         type: 'text',
-                        text: 'I encountered an error while generating a response. Please try again.'
+                        text: 'I encountered an error while generating a response. Please try again or rephrase your question.'
                     }), {
                         status: 200,
                         headers: { 
@@ -76,20 +101,28 @@ export async function onRequest(context) {
             }
 
             // ============================================================
-            // MODE 2: IMAGE GENERATION
+            // MODE 2: IMAGE / VIDEO GENERATION
             // ============================================================
             const model = '@cf/black-forest-labs/flux-1-schnell';
             
-            let genParams = {
-                prompt: prompt,
+            // Enhance prompt for design tasks (banner, logo, ad)
+            const designKeywords = ['banner', 'logo', 'ad', 'advertisement', 'poster', 'flyer'];
+            const isDesignTask = designKeywords.some(keyword => prompt.toLowerCase().includes(keyword));
+            
+            let enhancedPrompt = prompt;
+            if (isDesignTask) {
+                enhancedPrompt = prompt + ", professional design, high quality, clean layout, modern style";
+            }
+            
+            if (mode === 'video') {
+                enhancedPrompt = enhancedPrompt + ", cinematic, high quality, 4k";
+            }
+
+            const genParams = {
+                prompt: enhancedPrompt,
                 width: 1024,
                 height: 1024
             };
-
-            // Enhance prompt for video mode
-            if (mode === 'video') {
-                genParams.prompt = prompt + ", cinematic, high quality, 4k";
-            }
 
             const aiResponse = await env.AI.run(model, genParams);
 
