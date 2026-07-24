@@ -197,19 +197,6 @@
             text-align: center;
             padding: 1rem;
         }
-        .debug-info {
-            background: #0a0a1a;
-            border: 1px solid #2d2d44;
-            border-radius: 0.5rem;
-            padding: 0.5rem;
-            margin-top: 0.5rem;
-            font-size: 0.7rem;
-            color: #64748b;
-            word-break: break-all;
-            max-height: 100px;
-            overflow-y: auto;
-            display: none;
-        }
         .image-container {
             position: relative;
             display: inline-block;
@@ -240,7 +227,6 @@
             <span class="placeholder">✨ Your creation will appear here</span>
         </div>
         <div class="error" id="error"></div>
-        <div class="debug-info" id="debugInfo"></div>
 
         <div class="history" id="historySection" style="display:none;">
             <h3>📜 History (Stored in KV)</h3>
@@ -264,15 +250,12 @@
         async function generate() {
             const prompt = document.getElementById('prompt').value.trim();
             const errorDiv = document.getElementById('error');
-            const debugDiv = document.getElementById('debugInfo');
             const resultDiv = document.getElementById('result');
             const btn = document.getElementById('generateBtn');
             const loader = document.getElementById('loader');
 
             errorDiv.style.display = 'none';
             errorDiv.textContent = '';
-            debugDiv.style.display = 'none';
-            debugDiv.textContent = '';
 
             if (!prompt) {
                 errorDiv.textContent = '⚠️ Please enter a prompt';
@@ -291,11 +274,10 @@
                     body: JSON.stringify({ prompt, mode: currentMode })
                 });
 
-                // Check content type
                 const contentType = response.headers.get('content-type');
                 if (!contentType || !contentType.includes('application/json')) {
                     const text = await response.text();
-                    throw new Error(`Server returned HTML (${response.status}): ${text.substring(0, 200)}...`);
+                    throw new Error(`Server returned ${response.status}: ${text.substring(0, 100)}...`);
                 }
 
                 const data = await response.json();
@@ -304,41 +286,41 @@
                     throw new Error(data.error || 'Something went wrong');
                 }
 
-                // Debug info
                 console.log('Response data:', data);
                 console.log('Image URL type:', typeof data.url);
-                console.log('Image URL preview:', data.url ? data.url.substring(0, 100) : 'null');
+                console.log('Image URL starts with:', data.url ? data.url.substring(0, 50) : 'null');
 
-                // Show debug info
-                if (data.url) {
-                    debugDiv.style.display = 'block';
-                    debugDiv.textContent = `Image URL length: ${data.url.length} characters`;
+                // Ensure the URL is valid
+                let imageUrl = data.url;
+                
+                // Fix the URL if it's missing the data URL prefix
+                if (typeof imageUrl === 'string') {
+                    // If it starts with /9j/ (raw base64 JPEG)
+                    if (imageUrl.startsWith('/9j/')) {
+                        imageUrl = `data:image/jpeg;base64,${imageUrl}`;
+                        console.log('Fixed missing data URL prefix');
+                    }
+                    // If it's just a raw base64 string without prefix
+                    else if (imageUrl.match(/^[A-Za-z0-9+/=]+$/) && imageUrl.length > 100) {
+                        imageUrl = `data:image/jpeg;base64,${imageUrl}`;
+                        console.log('Added data URL prefix to raw base64');
+                    }
                 }
 
                 // Display the result
-                if (data.type === 'image' && data.url) {
-                    // Test if URL is valid
-                    const img = new Image();
-                    img.onload = function() {
-                        console.log('Image loaded successfully');
-                    };
-                    img.onerror = function(e) {
-                        console.error('Image failed to load:', e);
-                        debugDiv.textContent += '\n❌ Image failed to load. URL may be corrupted.';
-                    };
-                    img.src = data.url;
-
+                if (data.type === 'image' && imageUrl) {
                     resultDiv.innerHTML = `
                         <div class="image-container">
-                            <img src="${data.url}" alt="Generated image" 
-                                 onerror="this.onerror=null; this.alt='Image load failed'; this.style.border='2px solid #f87171';" />
+                            <img src="${imageUrl}" alt="Generated image" 
+                                 onload="console.log('Image loaded successfully')"
+                                 onerror="this.onerror=null; this.alt='Image load failed'; this.style.border='2px solid #f87171'; console.error('Image failed to load');" />
                             <span class="badge">✨ Image generated (ID: ${data.id || 'N/A'})</span>
                         </div>
                     `;
-                } else if (data.type === 'video' && data.url) {
+                } else if (data.type === 'video' && imageUrl) {
                     resultDiv.innerHTML = `
                         <video controls autoplay loop>
-                            <source src="${data.url}" type="video/mp4">
+                            <source src="${imageUrl}" type="video/mp4">
                             Your browser does not support video playback.
                         </video>
                         <span class="badge">🎬 Video generated (ID: ${data.id || 'N/A'})</span>
@@ -386,9 +368,15 @@
 
                 if (data.items && data.items.length > 0) {
                     historySection.style.display = 'block';
-                    historyList.innerHTML = data.items.map(item => `
+                    historyList.innerHTML = data.items.map(item => {
+                        let itemUrl = item.url;
+                        // Fix URL if needed
+                        if (typeof itemUrl === 'string' && itemUrl.startsWith('/9j/')) {
+                            itemUrl = `data:image/jpeg;base64,${itemUrl}`;
+                        }
+                        return `
                         <div class="history-item" onclick="viewHistoryItem('${item.id}')">
-                            <img src="${item.url}" alt="Generated item" 
+                            <img src="${itemUrl}" alt="Generated item" 
                                  onerror="this.style.display='none'; this.parentElement.querySelector('.img-error').style.display='block';" />
                             <span class="img-error" style="display:none;color:#64748b;font-size:0.7rem;width:50px;text-align:center;">No img</span>
                             <div class="info">
@@ -397,7 +385,7 @@
                             </div>
                             <span class="type-badge">${item.type || 'image'}</span>
                         </div>
-                    `).join('');
+                    `}).join('');
                 } else {
                     historySection.style.display = 'block';
                     historyList.innerHTML = '<div class="no-history">No history yet. Generate something!</div>';
@@ -415,16 +403,22 @@
                 const response = await fetch(`/api/history/${id}`);
                 const data = await response.json();
                 const resultDiv = document.getElementById('result');
+                
+                let imageUrl = data.url;
+                if (typeof imageUrl === 'string' && imageUrl.startsWith('/9j/')) {
+                    imageUrl = `data:image/jpeg;base64,${imageUrl}`;
+                }
+                
                 if (data.type === 'image') {
                     resultDiv.innerHTML = `
-                        <img src="${data.url}" alt="Generated image" 
+                        <img src="${imageUrl}" alt="Generated image" 
                              onerror="this.alt='Image load failed'; this.style.border='2px solid #f87171';" />
                         <span class="badge">📜 History item: ${data.id}</span>
                     `;
                 } else if (data.type === 'video') {
                     resultDiv.innerHTML = `
                         <video controls autoplay>
-                            <source src="${data.url}" type="video/mp4">
+                            <source src="${imageUrl}" type="video/mp4">
                             Your browser does not support video playback.
                         </video>
                         <span class="badge">📜 History item: ${data.id}</span>
