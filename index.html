@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Image & Video Generator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+        .container {
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            max-width: 800px;
+            width: 100%;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+        }
+        h1 {
+            color: #fff;
+            font-size: 2rem;
+            background: linear-gradient(135deg, #818cf8, #6366f1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle { color: #94a3b8; margin-bottom: 1.5rem; font-size: 0.95rem; }
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            background: #12121f;
+            padding: 0.25rem;
+            border-radius: 0.75rem;
+        }
+        .tab {
+            flex: 1;
+            padding: 0.6rem;
+            text-align: center;
+            border: none;
+            background: transparent;
+            color: #94a3b8;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .tab.active {
+            background: #6366f1;
+            color: #fff;
+        }
+        .tab:hover:not(.active) { color: #e2e8f0; }
+        textarea {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid #2d2d44;
+            background: #12121f;
+            color: #f1f5f9;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+        textarea:focus { outline: none; border-color: #6366f1; }
+        .hint { color: #64748b; font-size: 0.85rem; margin: 0.5rem 0 1rem; }
+        button {
+            background: #6366f1;
+            color: #fff;
+            border: none;
+            padding: 0.85rem 2rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        button:hover:not(:disabled) {
+            background: #4f46e5;
+            transform: translateY(-1px);
+        }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .loader {
+            display: none;
+            margin: 2rem auto;
+            width: 48px;
+            height: 48px;
+            border: 3px solid #2d2d44;
+            border-top: 3px solid #6366f1;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .result {
+            margin-top: 2rem;
+            text-align: center;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .result img, .result video {
+            max-width: 100%;
+            max-height: 450px;
+            border-radius: 0.75rem;
+            border: 1px solid #2d2d44;
+            background: #0a0a1a;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+        }
+        .result .placeholder { color: #475569; font-size: 0.95rem; }
+        .error {
+            color: #f87171;
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background: rgba(248,113,113,0.1);
+            border-radius: 0.5rem;
+            border: 1px solid rgba(248,113,113,0.2);
+            display: none;
+        }
+        .badge {
+            display: inline-block;
+            background: rgba(99,102,241,0.15);
+            color: #818cf8;
+            padding: 0.2rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+        .history {
+            margin-top: 2rem;
+            border-top: 1px solid #2d2d44;
+            padding-top: 1rem;
+        }
+        .history h3 { color: #94a3b8; font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.5rem;
+            background: #12121f;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+        }
+        .history-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 0.25rem;
+        }
+        .history-item span {
+            color: #e2e8f0;
+            font-size: 0.85rem;
+            flex: 1;
+        }
+        .history-item .date {
+            color: #64748b;
+            font-size: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ AI Creator</h1>
+        <p class="subtitle">Generate images & videos from text — free, no watermark</p>
+
+        <div class="tabs">
+            <button class="tab active" data-mode="image" onclick="setMode('image')">🖼️ Image</button>
+            <button class="tab" data-mode="video" onclick="setMode('video')">🎬 Video (1 min)</button>
+        </div>
+
+        <textarea id="prompt" placeholder="Describe what you want to create...">A futuristic city with neon lights and flying cars</textarea>
+        <p class="hint" id="hintText">💡 Be detailed for better results</p>
+
+        <button id="generateBtn" onclick="generate()">🚀 Generate</button>
+        <div class="loader" id="loader"></div>
+        <div class="result" id="result">
+            <span class="placeholder">✨ Your creation will appear here</span>
+        </div>
+        <div class="error" id="error"></div>
+
+        <div class="history" id="historySection" style="display:none;">
+            <h3>📜 History (Stored in KV)</h3>
+            <div id="historyList"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'image';
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.tab').forEach(t => {
+                t.classList.toggle('active', t.dataset.mode === mode);
+            });
+            document.getElementById('hintText').textContent = mode === 'image' ?
+                '💡 Be detailed for better images. Example: "A cyberpunk city at night, neon lights, rain"' :
+                '🎬 Describe a scene for video. Example: "A cat drinking tea in a cozy kitchen, cinematic"';
+        }
+
+        async function generate() {
+            const prompt = document.getElementById('prompt').value.trim();
+            const errorDiv = document.getElementById('error');
+            const resultDiv = document.getElementById('result');
+            const btn = document.getElementById('generateBtn');
+            const loader = document.getElementById('loader');
+
+            errorDiv.style.display = 'none';
+
+            if (!prompt) {
+                errorDiv.textContent = '⚠️ Please enter a prompt';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true;
+            loader.style.display = 'block';
+            resultDiv.innerHTML = '<span class="placeholder">⏳ Generating... please wait</span>';
+
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt, mode: currentMode })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Something went wrong');
+                }
+
+                if (data.type === 'image') {
+                    resultDiv.innerHTML = `
+                        <img src="${data.url}" alt="Generated image" />
+                        <span class="badge">✨ Image generated (ID: ${data.id})</span>
+                    `;
+                } else if (data.type === 'video') {
+                    resultDiv.innerHTML = `
+                        <video controls autoplay loop>
+                            <source src="${data.url}" type="video/mp4">
+                            Your browser does not support video playback.
+                        </video>
+                        <span class="badge">🎬 Video generated (ID: ${data.id})</span>
+                    `;
+                }
+
+                // Load history after generation
+                loadHistory();
+
+            } catch (err) {
+                errorDiv.textContent = '❌ ' + err.message;
+                errorDiv.style.display = 'block';
+                resultDiv.innerHTML = '<span class="placeholder">❌ Generation failed. Please try again.</span>';
+            } finally {
+                btn.disabled = false;
+                loader.style.display = 'none';
+            }
+        }
+
+        // Load history from KV via API
+        async function loadHistory() {
+            try {
+                const response = await fetch('/api/history');
+                const data = await response.json();
+                const historySection = document.getElementById('historySection');
+                const historyList = document.getElementById('historyList');
+
+                if (data.items && data.items.length > 0) {
+                    historySection.style.display = 'block';
+                    historyList.innerHTML = data.items.map(item => `
+                        <div class="history-item" onclick="viewHistoryItem('${item.id}')">
+                            <img src="${item.url}" alt="Generated item" />
+                            <span>${item.prompt.substring(0, 50)}...</span>
+                            <span class="date">${new Date(item.created).toLocaleDateString()}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    historySection.style.display = 'none';
+                }
+            } catch (err) {
+                console.log('History not available');
+            }
+        }
+
+        async function viewHistoryItem(id) {
+            const response = await fetch(`/api/history/${id}`);
+            const data = await response.json();
+            const resultDiv = document.getElementById('result');
+            if (data.type === 'image') {
+                resultDiv.innerHTML = `<img src="${data.url}" alt="Generated image" />`;
+            } else if (data.type === 'video') {
+                resultDiv.innerHTML = `<video controls autoplay><source src="${data.url}" type="video/mp4"></video>`;
+            }
+        }
+
+        // Load history on page load
+        document.addEventListener('DOMContentLoaded', loadHistory);
+    </script>
+</body>
+</html>
