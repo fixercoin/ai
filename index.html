@@ -95,12 +95,18 @@
             gap: 0.5rem;
             background: transparent;
             padding: 0;
+            position: relative;
         }
 
-        /* TEXT FIELD - INCREASED HEIGHT 3x */
-        .input-top .text-field {
+        /* TEXT FIELD - WITH + BUTTON INSIDE */
+        .input-top .text-field-wrapper {
             flex: 1;
-            padding: 1.5rem 1rem;
+            position: relative;
+        }
+
+        .input-top .text-field {
+            width: 100%;
+            padding: 1.5rem 3.5rem 1.5rem 1rem;
             font-size: 1rem;
             font-family: inherit;
             min-height: 160px;
@@ -131,6 +137,82 @@
             text-transform: uppercase;
         }
 
+        /* + BUTTON INSIDE TEXT FIELD - BOTTOM RIGHT */
+        .input-top .add-btn {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px dashed #d1d5db;
+            background: transparent;
+            color: #6b7280;
+            font-size: 1.2rem;
+            font-weight: 300;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            line-height: 1;
+            z-index: 10;
+        }
+
+        .input-top .add-btn:hover {
+            border-color: #6366f1;
+            color: #6366f1;
+            background: #f5f3ff;
+        }
+
+        /* DROPDOWN MENU */
+        .input-top .dropdown-menu {
+            display: none;
+            position: absolute;
+            bottom: 50px;
+            right: 12px;
+            background: #ffffff;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.375rem;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            min-width: 140px;
+            z-index: 20;
+            overflow: hidden;
+        }
+
+        .input-top .dropdown-menu.active {
+            display: block;
+        }
+
+        .input-top .dropdown-menu .dropdown-item {
+            padding: 0.6rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #1f2937;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border-bottom: 1px solid #f3f4f6;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .input-top .dropdown-menu .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .input-top .dropdown-menu .dropdown-item:hover {
+            background: #f5f3ff;
+            color: #6366f1;
+        }
+
+        .input-top .dropdown-menu .dropdown-item .icon {
+            font-size: 1rem;
+        }
+
         .input-top .generate-btn {
             padding: 0.6rem 1.8rem;
             border: none;
@@ -147,6 +229,7 @@
             letter-spacing: 0.5px;
             height: 56px;
             align-self: center;
+            min-width: 120px;
         }
 
         .input-top .generate-btn:hover:not(:disabled) {
@@ -160,83 +243,32 @@
             transform: none;
         }
 
-        /* BOTTOM ROW: REARRANGED BUTTONS */
-        .input-bottom {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.25rem 0;
-            width: 100%;
-            flex-wrap: wrap;
-        }
-
-        /* ALL BUTTONS - SAME DESIGN */
-        .input-bottom .add-btn,
-        .input-bottom .mode-select,
-        .input-bottom .image-mode-select {
-            padding: 0.4rem 1rem;
-            border-radius: 0.375rem;
-            border: 2px dashed #d1d5db;
-            background: transparent;
-            color: #6b7280;
-            font-size: 0.75rem;
+        /* RECORDING INDICATOR */
+        .recording-indicator {
+            display: none;
+            position: absolute;
+            bottom: 55px;
+            right: 12px;
+            background: #ef4444;
+            color: #fff;
+            padding: 0.3rem 0.8rem;
+            border-radius: 2rem;
+            font-size: 0.7rem;
             font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
-            white-space: nowrap;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.4rem;
-            height: 40px;
-            line-height: 1;
-            box-sizing: border-box;
+            letter-spacing: 0.5px;
+            animation: pulse 1s infinite;
+            z-index: 15;
         }
 
-        .input-bottom .add-btn:hover,
-        .input-bottom .mode-select:hover,
-        .input-bottom .image-mode-select:hover {
-            border-color: #6366f1;
-            color: #6366f1;
-            background: #f5f3ff;
+        .recording-indicator.active {
+            display: block;
         }
 
-        .input-bottom .add-btn .plus-icon {
-            font-size: 1.1rem;
-            font-weight: 300;
-        }
-
-        /* DROPDOWNS - NO CHEVRON */
-        .input-bottom .mode-select,
-        .input-bottom .image-mode-select {
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            background-image: none;
-            padding-right: 1rem;
-            min-width: 90px;
-            display: inline-flex;
-        }
-
-        .input-bottom .mode-select:focus,
-        .input-bottom .image-mode-select:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-            outline: none;
-        }
-
-        .input-bottom .file-name {
-            font-size: 0.65rem;
-            color: #9ca3af;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            margin-left: 0.25rem;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            max-width: 150px;
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
         }
 
         /* LOADER */
@@ -425,6 +457,13 @@
                 padding: 0.3rem 0.6rem;
                 letter-spacing: 0.3px;
             }
+
+            .input-top .generate-btn {
+                min-width: 100px;
+                font-size: 0.75rem;
+                padding: 0.5rem 1.2rem;
+                height: 48px;
+            }
         }
 
         @media (max-width: 640px) {
@@ -462,11 +501,29 @@
                 flex-wrap: wrap;
             }
 
+            .input-top .text-field-wrapper {
+                width: 100%;
+            }
+
             .input-top .text-field {
                 min-height: 120px;
                 width: 100%;
                 font-size: 0.85rem;
-                padding: 1rem 0.8rem;
+                padding: 1rem 3rem 1rem 0.8rem;
+            }
+
+            .input-top .add-btn {
+                bottom: 10px;
+                right: 10px;
+                width: 28px;
+                height: 28px;
+                font-size: 1rem;
+            }
+
+            .input-top .dropdown-menu {
+                bottom: 45px;
+                right: 10px;
+                min-width: 120px;
             }
 
             .input-top .generate-btn {
@@ -477,33 +534,7 @@
                 border-radius: 0.375rem;
                 height: 44px;
                 align-self: stretch;
-            }
-
-            .input-bottom {
-                flex-wrap: wrap;
-                gap: 0.4rem;
-            }
-
-            .input-bottom .add-btn {
-                font-size: 0.65rem;
-                padding: 0.35rem 0.7rem;
-                border-radius: 0.375rem;
-                height: 36px;
-            }
-
-            .input-bottom .mode-select,
-            .input-bottom .image-mode-select {
-                flex: 1;
-                min-width: 70px;
-                font-size: 0.65rem;
-                padding: 0.35rem 0.7rem;
-                border-radius: 0.375rem;
-                height: 36px;
-            }
-
-            .input-bottom .file-name {
-                max-width: 80px;
-                font-size: 0.55rem;
+                min-width: unset;
             }
 
             .action-bar .action-btn {
@@ -537,24 +568,29 @@
                 letter-spacing: 0.1px;
             }
 
-            .input-bottom .add-btn {
-                font-size: 0.55rem;
-                padding: 0.3rem 0.5rem;
-                border-radius: 0.375rem;
-                height: 32px;
+            .input-top .text-field {
+                min-height: 100px;
+                font-size: 0.75rem;
+                padding: 0.8rem 2.8rem 0.8rem 0.6rem;
             }
 
-            .input-bottom .add-btn .plus-icon {
-                font-size: 0.9rem;
+            .input-top .add-btn {
+                bottom: 8px;
+                right: 8px;
+                width: 24px;
+                height: 24px;
+                font-size: 0.85rem;
             }
 
-            .input-bottom .mode-select,
-            .input-bottom .image-mode-select {
-                font-size: 0.55rem;
-                padding: 0.3rem 0.5rem;
-                min-width: 60px;
-                border-radius: 0.375rem;
-                height: 32px;
+            .input-top .dropdown-menu {
+                bottom: 40px;
+                right: 8px;
+                min-width: 100px;
+            }
+
+            .input-top .dropdown-menu .dropdown-item {
+                font-size: 0.7rem;
+                padding: 0.4rem 0.8rem;
             }
         }
 
@@ -577,6 +613,31 @@
                 font-size: 0.35rem;
                 padding: 0.15rem 0.35rem;
             }
+
+            .input-top .text-field {
+                min-height: 80px;
+                font-size: 0.7rem;
+                padding: 0.6rem 2.5rem 0.6rem 0.5rem;
+            }
+
+            .input-top .add-btn {
+                bottom: 6px;
+                right: 6px;
+                width: 22px;
+                height: 22px;
+                font-size: 0.75rem;
+            }
+
+            .input-top .dropdown-menu {
+                bottom: 35px;
+                right: 6px;
+                min-width: 90px;
+            }
+
+            .input-top .dropdown-menu .dropdown-item {
+                font-size: 0.6rem;
+                padding: 0.3rem 0.6rem;
+            }
         }
     </style>
 </head>
@@ -588,34 +649,30 @@
                 <img class="logo" src="https://i.postimg.cc/Nj54ywH5/circle.png" alt="FIXORIUM AI" />
                 <span class="brand-name">FIXORIUM AI</span>
             </div>
-            <div class="header-right">AI CLOUD FREE SERVICE</div>
+            <div class="header-right">FREE AI CLOUD SERVICE - UNLIMTED </div>
         </div>
 
         <!-- INPUT AREA - NO CARD -->
         <div class="input-area">
             <!-- TOP ROW: TEXT FIELD + GENERATE BUTTON -->
             <div class="input-top">
-                <textarea class="text-field" id="promptInput" placeholder="DESCRIBE WHAT YOU WANT TO CREATE..." rows="1"></textarea>
+                <div class="text-field-wrapper">
+                    <textarea class="text-field" id="promptInput" placeholder="DESCRIBE WHAT YOU WANT TO CREATE..." rows="1"></textarea>
+                    <button class="add-btn" id="addBtn" title="ADD IMAGE / VIDEO / VOICE">+</button>
+                    <div class="dropdown-menu" id="dropdownMenu">
+                        <div class="dropdown-item" data-mode="image">
+                            <span class="icon">🖼️</span> IMAGE
+                        </div>
+                        <div class="dropdown-item" data-mode="video">
+                            <span class="icon">🎬</span> VIDEO
+                        </div>
+                        <div class="dropdown-item" data-mode="voice">
+                            <span class="icon">🎤</span> VOICE
+                        </div>
+                    </div>
+                    <div class="recording-indicator" id="recordingIndicator">🔴 RECORDING...</div>
+                </div>
                 <button class="generate-btn" id="generateBtn">GENERATE</button>
-            </div>
-
-            <!-- BOTTOM ROW: REARRANGED BUTTONS -->
-            <div class="input-bottom">
-                <!-- 1. GENERATE FROM IMAGE -->
-                <button class="add-btn" id="addImageBtn">
-                    <span class="plus-icon">+</span> GENERATE FROM IMAGE
-                </button>
-                <!-- 2. SINGLE IMAGE / MULTI IMAGE -->
-                <select class="image-mode-select" id="imageModeSelect">
-                    <option value="single">SINGLE IMAGE</option>
-                    <option value="multi">MULTI IMAGE</option>
-                </select>
-                <!-- 3. IMAGE / VIDEO -->
-                <select class="mode-select" id="modeSelect">
-                    <option value="image">IMAGE</option>
-                    <option value="video">VIDEO</option>
-                </select>
-                <span class="file-name" id="fileName"></span>
             </div>
         </div>
 
@@ -652,11 +709,13 @@
     <script>
         let currentImageUrl = null;
         let currentType = 'image';
+        let selectedMode = 'image';
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let isRecording = false;
 
         // DOM ELEMENTS
         const promptInput = document.getElementById('promptInput');
-        const modeSelect = document.getElementById('modeSelect');
-        const imageModeSelect = document.getElementById('imageModeSelect');
         const generateBtn = document.getElementById('generateBtn');
         const loader = document.getElementById('loader');
         const resultArea = document.getElementById('resultArea');
@@ -668,10 +727,179 @@
         const previewModal = document.getElementById('previewModal');
         const previewImage = document.getElementById('previewImage');
         const closeModal = document.getElementById('closeModal');
-        const addImageBtn = document.getElementById('addImageBtn');
-        const fileName = document.getElementById('fileName');
+        const addBtn = document.getElementById('addBtn');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        const recordingIndicator = document.getElementById('recordingIndicator');
 
+        // ============================================================
+        // TOGGLE DROPDOWN
+        // ============================================================
+        addBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle('active');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function() {
+            dropdownMenu.classList.remove('active');
+        });
+
+        // ============================================================
+        // DROPDOWN ITEM SELECTION
+        // ============================================================
+        document.querySelectorAll('.dropdown-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const mode = this.dataset.mode;
+                selectedMode = mode;
+                dropdownMenu.classList.remove('active');
+
+                if (mode === 'image') {
+                    // Open file picker for image
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/*';
+                    input.multiple = false;
+                    input.onchange = function(e) {
+                        const files = e.target.files;
+                        if (files && files.length > 0) {
+                            const file = files[0];
+                            const reader = new FileReader();
+                            reader.onload = function(ev) {
+                                const img = new Image();
+                                img.onload = function() {
+                                    currentImageUrl = ev.target.result;
+                                    currentType = 'image';
+                                    resultArea.innerHTML = `
+                                        <img src="${currentImageUrl}" alt="UPLOADED IMAGE" />
+                                    `;
+                                    actionBar.style.display = 'flex';
+                                    errorDiv.style.display = 'none';
+                                };
+                                img.src = ev.target.result;
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    };
+                    input.click();
+                } else if (mode === 'video') {
+                    // Open file picker for video
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'video/*';
+                    input.multiple = false;
+                    input.onchange = function(e) {
+                        const files = e.target.files;
+                        if (files && files.length > 0) {
+                            const file = files[0];
+                            const reader = new FileReader();
+                            reader.onload = function(ev) {
+                                currentImageUrl = ev.target.result;
+                                currentType = 'video';
+                                resultArea.innerHTML = `
+                                    <video controls autoplay loop>
+                                        <source src="${currentImageUrl}" type="video/mp4">
+                                        YOUR BROWSER DOES NOT SUPPORT VIDEO PLAYBACK.
+                                    </video>
+                                `;
+                                actionBar.style.display = 'flex';
+                                errorDiv.style.display = 'none';
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    };
+                    input.click();
+                } else if (mode === 'voice') {
+                    // Start voice recording
+                    startVoiceRecording();
+                }
+            });
+        });
+
+        // ============================================================
+        // VOICE RECORDING
+        // ============================================================
+        async function startVoiceRecording() {
+            if (isRecording) {
+                // Stop recording
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                }
+                isRecording = false;
+                recordingIndicator.classList.remove('active');
+                return;
+            }
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    
+                    // Convert to text using Web Speech API
+                    try {
+                        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                            const recognition = new SpeechRecognition();
+                            recognition.lang = 'en-US';
+                            recognition.continuous = false;
+                            recognition.interimResults = false;
+
+                            recognition.onresult = function(event) {
+                                const transcript = event.results[0][0].transcript;
+                                promptInput.value = transcript.toUpperCase();
+                                autoAdjustHeight.call(promptInput);
+                                
+                                // Auto-generate after voice capture
+                                setTimeout(() => generate(), 500);
+                            };
+                            
+                            recognition.onerror = function(event) {
+                                console.error('Speech recognition error:', event.error);
+                                errorDiv.textContent = '⚠️ COULD NOT RECOGNIZE SPEECH. PLEASE TYPE YOUR PROMPT.';
+                                errorDiv.style.display = 'block';
+                            };
+
+                            recognition.start();
+                            
+                            // Auto-stop recognition after 5 seconds if no speech
+                            setTimeout(() => {
+                                try {
+                                    recognition.stop();
+                                } catch(e) {}
+                            }, 5000);
+                        } else {
+                            promptInput.focus();
+                        }
+                    } catch (err) {
+                        console.error('Voice processing error:', err);
+                    }
+
+                    // Stop all tracks
+                    stream.getTracks().forEach(track => track.stop());
+                    recordingIndicator.classList.remove('active');
+                };
+
+                mediaRecorder.start();
+                isRecording = true;
+                recordingIndicator.classList.add('active');
+
+            } catch (err) {
+                console.error('Microphone error:', err);
+                errorDiv.textContent = '⚠️ MICROPHONE ACCESS DENIED. PLEASE ALLOW MICROPHONE PERMISSION.';
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        // ============================================================
         // AUTO-ADJUST TEXTAREA HEIGHT
+        // ============================================================
         function autoAdjustHeight() {
             this.style.height = 'auto';
             const newHeight = Math.min(this.scrollHeight, 400);
@@ -681,7 +909,9 @@
         promptInput.addEventListener('input', autoAdjustHeight);
         promptInput.addEventListener('focus', autoAdjustHeight);
 
+        // ============================================================
         // ENTER KEY TO GENERATE (SHIFT+ENTER FOR NEW LINE)
+        // ============================================================
         promptInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -689,50 +919,11 @@
             }
         });
 
-        // ADD IMAGE BUTTON - OPENS FILE PICKER
-        addImageBtn.addEventListener('click', function() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'image/*';
-            input.multiple = (imageModeSelect.value === 'multi');
-            input.onchange = function(e) {
-                const files = e.target.files;
-                if (files && files.length > 0) {
-                    const file = files[0];
-                    fileName.textContent = file.name.toUpperCase();
-                    const reader = new FileReader();
-                    reader.onload = function(ev) {
-                        const img = new Image();
-                        img.onload = function() {
-                            currentImageUrl = ev.target.result;
-                            currentType = 'image';
-                            resultArea.innerHTML = `
-                                <img src="${currentImageUrl}" alt="UPLOADED IMAGE" />
-                                ${files.length > 1 ? `<p style="color:#6b7280;font-size:0.75rem;margin-top:0.5rem;text-transform:uppercase;">+ ${files.length - 1} MORE IMAGES</p>` : ''}
-                            `;
-                            actionBar.style.display = 'flex';
-                            errorDiv.style.display = 'none';
-                        };
-                        img.src = ev.target.result;
-                    };
-                    reader.readAsDataURL(file);
-                }
-            };
-            input.click();
-        });
-
-        // UPDATE FILE INPUT MULTIPLE ATTRIBUTE WHEN DROPDOWN CHANGES
-        imageModeSelect.addEventListener('change', function() {
-            // Just update the behavior for next file selection
-            const isMulti = this.value === 'multi';
-            addImageBtn.dataset.multi = isMulti ? 'true' : 'false';
-        });
-
+        // ============================================================
         // GENERATE FUNCTION
+        // ============================================================
         async function generate() {
             const prompt = promptInput.value.trim();
-            const mode = modeSelect.value;
-            const imageMode = imageModeSelect.value;
 
             errorDiv.style.display = 'none';
             errorDiv.textContent = '';
@@ -748,16 +939,14 @@
             resultArea.innerHTML = '<div class="placeholder"><span class="icon">⏳</span>GENERATING...</div>';
             actionBar.style.display = 'none';
             currentImageUrl = null;
-            fileName.textContent = '';
 
             try {
                 const response = await fetch('/api/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        prompt, 
-                        mode,
-                        imageMode: imageMode
+                        prompt,
+                        mode: selectedMode
                     })
                 });
 
@@ -791,7 +980,6 @@
                     resultArea.innerHTML = `
                         <img src="${currentImageUrl}" alt="GENERATED IMAGE" 
                              onerror="this.alt='IMAGE LOAD FAILED'; this.style.border='2px solid #ef4444';" />
-                        ${imageMode === 'multi' ? `<p style="color:#6b7280;font-size:0.75rem;margin-top:0.5rem;text-transform:uppercase;">MULTI IMAGE MODE</p>` : ''}
                     `;
                 } else {
                     resultArea.innerHTML = `
@@ -820,7 +1008,9 @@
         // GENERATE ON BUTTON CLICK
         generateBtn.addEventListener('click', generate);
 
+        // ============================================================
         // PREVIEW
+        // ============================================================
         previewBtn.addEventListener('click', function() {
             if (currentImageUrl) {
                 previewImage.src = currentImageUrl;
@@ -839,7 +1029,9 @@
             }
         });
 
+        // ============================================================
         // DOWNLOAD
+        // ============================================================
         downloadBtn.addEventListener('click', function() {
             if (currentImageUrl) {
                 const link = document.createElement('a');
@@ -852,7 +1044,9 @@
             }
         });
 
+        // ============================================================
         // EDIT - OPENS IN NEW TAB
+        // ============================================================
         editBtn.addEventListener('click', function() {
             if (currentImageUrl) {
                 const win = window.open('', '_blank');
@@ -870,7 +1064,9 @@
             }
         });
 
+        // ============================================================
         // KEYBOARD SHORTCUT: CTRL+ENTER TO GENERATE
+        // ============================================================
         document.addEventListener('keydown', function(e) {
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                 e.preventDefault();
